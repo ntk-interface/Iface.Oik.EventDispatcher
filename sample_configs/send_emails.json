@@ -1,0 +1,17 @@
+{
+	"filter": {
+		"importances": [2, 3],
+		"types": ["StatusChange", "Alarm"],
+		"statuses": ["20:1:1"]
+	},
+	"handler": "emailhandler",
+	"options": {
+		"host": "smtp.mail.ru",
+		"port": 465,
+		"useSsl": "true",
+		"login": "<login>",
+		"password": "<password>",
+		"sendTo": ["<addr1@mail.ru>", "<addr2@mail.ru>"],
+		"subject": "Событие {importance}: {text}, {state}"
+	}
+}

@@ -1,0 +1,8 @@
+{
+	"handler" : "httpHandler",
+	"options" : {
+		"method": "get",
+		"url": "http://localhost:3000/imp/{importanceId}",
+		"body" : "{\"event\":\"{defaultBody}\"}"
+	}
+}

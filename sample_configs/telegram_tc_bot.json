@@ -1,0 +1,7 @@
+{
+	"handler": "telegramHandler",
+	"options": {
+		"botToken": "<telegram-token>",
+		"chatId": 0
+	}
+}

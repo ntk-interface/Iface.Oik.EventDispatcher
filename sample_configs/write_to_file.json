@@ -1,0 +1,6 @@
+{
+	"handler": "fileHandler",
+	"options": {
+		"filePath": "D:/1/events.txt"
+	}
+}

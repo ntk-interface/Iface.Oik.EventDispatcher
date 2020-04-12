@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.2" />
+        <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="FluentValidation" Version="8.6.2" />
+        <PackageReference Include="MailKit" Version="2.5.2" />
+        <PackageReference Include="Telegram.Bot" Version="15.4.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Iface.Oik.Tm">
+            <HintPath>..\lib\Iface.Oik.Tm.dll</HintPath>
+        </Reference>
+        <Reference Include="Iface.Oik.Tm.Native">
+            <HintPath>..\lib\Iface.Oik.Tm.Native.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="..\lib\libif_cfs.so" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="..\lib\libif_cfs.dll" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="..\azure-pipelines.yml" />
+    </ItemGroup>
+</Project>
