@@ -15,22 +15,23 @@ steps:
   displayName: Build
   inputs:
     command: build
-    projects: '**/*.csproj'
+    projects: 'src/**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: Test
   inputs:
     command: test
-    projects: '**/*.Test/*.csproj'
+    projects: 'tests/**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: Publish
   inputs:
     command: publish
+    projects: 'src/**/*.csproj'
     publishWebProjects: false
-    arguments: '-c $(BuildConfiguration) -r win-x64 --self-contained false /p:CopyOutputSymbolsToPublishDirectory=false -o $(Build.ArtifactStagingDirectory)/bin'
+    arguments: '-c $(BuildConfiguration) -r win-x64 --self-contained false -o $(Build.ArtifactStagingDirectory)/bin'
     zipAfterPublish: true
     modifyOutputPath: false
     
