@@ -53,32 +53,42 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    public static string GetTemplatedString(string template, TmEvent ev)
+    public static string GetBodyOrDefault(string template, TmEvent tmEvent)
     {
-      if (template == null || ev == null)
+      return GetBody(template, tmEvent) ?? GetDefaultBody(tmEvent);
+    }
+
+
+    public static string GetBody(string template, TmEvent tmEvent)
+    {
+      if (template == null || tmEvent == null)
       {
         return null;
       }
-
-      var stringBuilder = new StringBuilder(template).Replace("{time}", ev.Time.ToString())
-                                                     .Replace("{importanceId}", ev.Importance.ToString())
-                                                     .Replace("{importance}",   ev.ImportanceAlias)
-                                                     .Replace("{text}",         ev.Text)
-                                                     .Replace("{state}",        ev.StateString)
-                                                     .Replace("{type}",         ev.TypeString)
-                                                     .Replace("{username}",     ev.Username)
-                                                     .Replace("{tmAddr}",       ev.TmAddrString)
-                                                     .Replace("{defaultBody}",  GetDefaultBody(ev));
+      
+      var stringBuilder = new StringBuilder(template).Replace("{time}", tmEvent.Time.ToString())
+                                                     .Replace("{importanceId}", tmEvent.Importance.ToString())
+                                                     .Replace("{importance}",   tmEvent.ImportanceAlias)
+                                                     .Replace("{text}",         tmEvent.Text)
+                                                     .Replace("{state}",        tmEvent.StateString)
+                                                     .Replace("{type}",         tmEvent.TypeString)
+                                                     .Replace("{username}",     tmEvent.Username)
+                                                     .Replace("{tmAddr}",       tmEvent.TmAddrString)
+                                                     .Replace("{defaultBody}",  GetDefaultBody(tmEvent));
       var str = stringBuilder.ToString();
 
       return Regex.Replace(str,
                            @"{time:(.*)}",
-                           match => ev.Time?.ToString(match.Groups[1].Value) ?? string.Empty);
+                           match => tmEvent.Time?.ToString(match.Groups[1].Value) ?? string.Empty);
     }
 
 
     public static string GetDefaultBody(TmEvent ev)
     {
+      if (ev == null)
+      {
+        return null;
+      }
       return $"{ev.Time} | {ev.ImportanceAlias} | {ev.Text} | {ev.StateString} | {ev.TypeString} | {ev.Username}";
     }
 

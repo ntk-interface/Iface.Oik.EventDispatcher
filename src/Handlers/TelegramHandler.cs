@@ -30,6 +30,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     {
       public string BotToken { get; set; }
       public int[]  ChatIds  { get; set; }
+      public string Body     { get; set; }
     }
 
 
@@ -57,7 +58,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
       {
         foreach (var chatId in _options.ChatIds)
         {
-          await _bot.SendTextMessageAsync(chatId, GetDefaultBody(tmEvent));
+          await _bot.SendTextMessageAsync(chatId, GetBodyOrDefault(_options.Body, tmEvent));
         }
       }
     }

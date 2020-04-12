@@ -34,17 +34,18 @@ namespace Iface.Oik.EventDispatcher.Handlers
 
     private class Options
     {
-      public string   Host      { get; set; }
-      public int      Port      { get; set; }
-      public bool     UseSsl    { get; set; }
-      public string   Login     { get; set; }
-      public string   Password  { get; set; }
-      public string   From      { get; set; }
-      public string   FromEmail { get; set; }
-      public string[] SendTo    { get; set; }
-      public bool     IsHtml    { get; set; }
-      public string   Subject   { get; set; }
-      public string   Body      { get; set; }
+      public string   Host        { get; set; }
+      public int      Port        { get; set; }
+      public bool     UseSsl      { get; set; }
+      public string   Login       { get; set; }
+      public string   Password    { get; set; }
+      public string   From        { get; set; }
+      public string   FromEmail   { get; set; }
+      public string[] SendTo      { get; set; }
+      public bool     IsHtml      { get; set; }
+      public string   Subject     { get; set; }
+      public string   Body        { get; set; }
+      public bool     BatchEvents { get; set; }
     }
 
 
@@ -89,19 +90,42 @@ namespace Iface.Oik.EventDispatcher.Handlers
         {
           await client.AuthenticateAsync(_options.Login, _options.Password);
         }
-        
-        foreach (var tmEvent in tmEvents)
+
+        if (_options.BatchEvents)
         {
-          mimeMessage.Subject = GetTemplatedString(_options.Subject, tmEvent) ?? DefaultSubject;
+          mimeMessage.Subject = GetSubject();
           mimeMessage.Body = new TextPart(_options.IsHtml ? TextFormat.Html : TextFormat.Plain)
           {
-            Text = GetTemplatedString(_options.Body, tmEvent) ?? GetDefaultBody(tmEvent)
+            Text = string.Join("\n\n", tmEvents.Select(tmEvent => GetBodyOrDefault(_options.Body, tmEvent)))
           };
-          await client.SendAsync(mimeMessage);
         }
-        
+        else
+        {
+          foreach (var tmEvent in tmEvents)
+          {
+            mimeMessage.Subject = GetSubject(tmEvent);
+            mimeMessage.Body = new TextPart(_options.IsHtml ? TextFormat.Html : TextFormat.Plain)
+            {
+              Text = GetBodyOrDefault(_options.Body, tmEvent)
+            };
+            await client.SendAsync(mimeMessage);
+          }
+        }
+
         await client.DisconnectAsync(true);
       }
+    }
+
+
+    private string GetSubject()
+    {
+      return _options.Subject ?? DefaultSubject;
+    }
+
+
+    private string GetSubject(TmEvent tmEvent)
+    {
+      return GetBody(_options.Subject, tmEvent) ?? DefaultSubject;
     }
 
 

@@ -19,7 +19,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
       {
         throw new Exception("Не заданы настройки");
       }
-      
+
       _options = options.ToObject<Options>();
       new OptionsValidator().ValidateAndThrow(_options);
     }
@@ -28,6 +28,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     private class Options
     {
       public string FilePath { get; set; }
+      public string Body     { get; set; }
     }
 
 
@@ -46,7 +47,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
       {
         foreach (var tmEvent in tmEvents)
         {
-          writer.WriteLine(GetDefaultBody(tmEvent));
+          writer.WriteLine(GetBodyOrDefault(_options.Body, tmEvent));
         }
       }
 

@@ -64,10 +64,10 @@ namespace Iface.Oik.EventDispatcher.Handlers
       foreach (var tmEvent in tmEvents)
       {
         var request = new HttpRequestMessage(GetHttpMethod(_options.Method), 
-                                             GetTemplatedString(_options.Url, tmEvent));
+                                             GetBody(_options.Url, tmEvent));
         if (_options.Body != null)
         {
-          request.Content = new StringContent(GetTemplatedString(_options.Body, tmEvent));
+          request.Content = new StringContent(GetBody(_options.Body, tmEvent));
         }
 
         await _httpClient.SendAsync(request);

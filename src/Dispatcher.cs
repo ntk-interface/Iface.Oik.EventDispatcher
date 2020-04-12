@@ -14,9 +14,9 @@ namespace Iface.Oik.EventDispatcher
 {
   public class Dispatcher : BackgroundService
   {
-    private static readonly string ModelPath = Path.Combine(
+    private static readonly string ConfigsPath = Path.Combine(
       Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-      "config");
+      "configs");
 
     private readonly IOikDataApi              _api;
     private readonly IHostApplicationLifetime _applicationLifetime;
@@ -48,7 +48,7 @@ namespace Iface.Oik.EventDispatcher
 
     private async Task<bool> LoadHandlers()
     {
-      if (!Directory.Exists(ModelPath))
+      if (!Directory.Exists(ConfigsPath))
       {
         Tms.PrintError("Не найден каталог с файлами обработчиков событий");
         return false;
@@ -56,7 +56,7 @@ namespace Iface.Oik.EventDispatcher
 
       var allHandlers = FindAllHandlers();
 
-      foreach (var file in Directory.GetFiles(ModelPath, "*.json"))
+      foreach (var file in Directory.GetFiles(ConfigsPath, "*.json"))
       {
         var name = Path.GetFileName(file);
         try
