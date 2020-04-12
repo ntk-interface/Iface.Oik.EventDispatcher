@@ -30,6 +30,7 @@ steps:
   inputs:
     command: publish
     projects: 'src/**/*.csproj'
+    publishWebProjects: false
     arguments: '-c $(BuildConfiguration) -r win-x64 --self-contained false -o $(Build.ArtifactStagingDirectory)/bin'
     
 - task: CopyFiles@2
