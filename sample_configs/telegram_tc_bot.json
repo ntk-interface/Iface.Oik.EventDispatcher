@@ -1,7 +1,8 @@
 {
-	"handler": "telegramHandler",
+	"handler": "TelegramHandler",
 	"options": {
 		"botToken": "<telegram-token>",
-		"chatId": 0
+		"chatIds": [0, 1],
+		"body": "Новое событие: {time:HH:mm:ss}, {importance}"
 	}
 }

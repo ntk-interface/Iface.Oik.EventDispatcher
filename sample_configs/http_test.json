@@ -1,5 +1,8 @@
 {
-	"handler" : "httpHandler",
+	"filter": {
+		"types": ["Alarm"]
+	},
+	"handler" : "HttpHandler",
 	"options" : {
 		"method": "get",
 		"url": "http://localhost:3000/imp/{importanceId}",
