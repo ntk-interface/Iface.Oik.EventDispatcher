@@ -98,6 +98,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
           {
             Text = string.Join("\n\n", tmEvents.Select(tmEvent => GetBodyOrDefault(_options.Body, tmEvent)))
           };
+          await client.SendAsync(mimeMessage);
         }
         else
         {
