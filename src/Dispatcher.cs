@@ -16,6 +16,7 @@ namespace Iface.Oik.EventDispatcher
   {
     private static readonly string ConfigsPath = Path.Combine(
       Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+      "..",
       "configs");
 
     private readonly IOikDataApi              _api;
