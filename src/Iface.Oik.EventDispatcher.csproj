@@ -26,5 +26,6 @@
     </ItemGroup>
     <ItemGroup>
         <None Include="..\azure-pipelines.yml" />
+        <None Include="..\README.md" />
     </ItemGroup>
 </Project>
