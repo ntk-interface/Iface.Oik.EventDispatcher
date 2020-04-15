@@ -69,7 +69,7 @@ namespace Iface.Oik.EventDispatcher
       var stringBuilder = new StringBuilder(template).Replace("{time}", tmEvent.Time.ToString())
                                                      .Replace("{importanceId}", tmEvent.Importance.ToString())
                                                      .Replace("{importance}",   tmEvent.ImportanceAlias)
-                                                     .Replace("{text}",         tmEvent.Text)
+                                                     .Replace("{name}",         tmEvent.Text)
                                                      .Replace("{state}",        tmEvent.StateString)
                                                      .Replace("{type}",         tmEvent.TypeString)
                                                      .Replace("{username}",     tmEvent.Username)

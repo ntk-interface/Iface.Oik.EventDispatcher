@@ -244,8 +244,8 @@ namespace Iface.Oik.EventDispatcher.Test
         var statusType = TmNativeDefs.TmDataTypes.Status;
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) statusType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
+          dto.TmType = (short) statusType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
         });
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -268,8 +268,8 @@ namespace Iface.Oik.EventDispatcher.Test
         var analogType = TmNativeDefs.TmDataTypes.Analog;
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) analogType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
+          dto.TmType = (short) analogType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
         });
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -286,8 +286,8 @@ namespace Iface.Oik.EventDispatcher.Test
         var filter   = new HandlerFilter(new ConfigFilterModel {Statuses = statuses, Analogs = analogs});
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = 0;
-          dto.Tma     = 0;
+          dto.TmType = 0;
+          dto.Tma    = 0;
         });
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -306,23 +306,23 @@ namespace Iface.Oik.EventDispatcher.Test
         var analogType = TmNativeDefs.TmDataTypes.Analog;
         var tmEventStatusFalse = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) statusType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
+          dto.TmType = (short) statusType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
         });
         var tmEventStatusTrue = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) statusType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
+          dto.TmType = (short) statusType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
         });
         var tmEventAnalogFalse = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) analogType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
+          dto.TmType = (short) analogType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
         });
         var tmEventAnalogTrue = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
-          dto.TmaType = (short) analogType;
-          dto.Tma     = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
+          dto.TmType = (short) analogType;
+          dto.Tma    = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
         });
 
         filter.IsEventSuitable(tmEventStatusFalse).Should().BeFalse();

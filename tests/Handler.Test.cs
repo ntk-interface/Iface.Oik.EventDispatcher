@@ -167,14 +167,14 @@ namespace Iface.Oik.EventDispatcher.Test
 
       [Theory]
       [InlineAutoData]
-      public void ReturnsStringWithSubstitutedText(string text)
+      public void ReturnsStringWithSubstitutedName(string name)
       {
-        var body    = "Dummy {text}";
-        var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Name = text);
+        var body    = "Dummy {name}";
+        var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Name = name);
 
         var result = Handler.GetBody(body, tmEvent);
 
-        result.Should().Be($"Dummy {text}");
+        result.Should().Be($"Dummy {name}");
       }
 
 
@@ -244,19 +244,19 @@ namespace Iface.Oik.EventDispatcher.Test
 
       [Theory]
       [InlineAutoData]
-      public void ReturnsStringWithSubstitutedMultipleFields(DateTime time, string text, string state)
+      public void ReturnsStringWithSubstitutedMultipleFields(DateTime time, string name, string state)
       {
-        var body = "Dummy {time} {text} {state} {text}";
+        var body = "Dummy {time} {name} {state} {name}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.UpdateTime   = time;
-          dto.Name         = text;
+          dto.Name         = name;
           dto.RecStateText = state;
         });
 
         var result = Handler.GetBody(body, tmEvent);
 
-        result.Should().Be($"Dummy {time} {text} {state} {text}");
+        result.Should().Be($"Dummy {time} {name} {state} {name}");
       }
 
 

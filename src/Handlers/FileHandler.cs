@@ -38,7 +38,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
       {
         RuleFor(o => o.FilePath).NotNull().NotEmpty();
       }
-    }
+    } 
 
 
     protected override Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
