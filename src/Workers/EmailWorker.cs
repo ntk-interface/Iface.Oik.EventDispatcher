@@ -9,9 +9,9 @@ using MimeKit;
 using MimeKit.Text;
 using Newtonsoft.Json.Linq;
 
-namespace Iface.Oik.EventDispatcher.Handlers
+namespace Iface.Oik.EventDispatcher.Workers
 {
-  public class EmailHandler : Handler
+  public class EmailWorker : Worker
   {
     private const string DefaultSubject = "Новые события ОИК Диспетчер НТ";
 
@@ -76,7 +76,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     }
 
 
-    protected override async Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
     {
       var mimeMessage = new MimeMessage();
 

@@ -6,9 +6,9 @@ using Iface.Oik.Tm.Interfaces;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot;
 
-namespace Iface.Oik.EventDispatcher.Handlers
+namespace Iface.Oik.EventDispatcher.Workers
 {
-  public class TelegramHandler : Handler
+  public class TelegramWorker : Worker
   {
     private Options           _options;
     private TelegramBotClient _bot;
@@ -52,7 +52,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     }
 
 
-    protected override async Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
     {
       foreach (var tmEvent in tmEvents)
       {

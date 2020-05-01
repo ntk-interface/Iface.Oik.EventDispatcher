@@ -1,25 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
 using Newtonsoft.Json.Linq;
 
-namespace Iface.Oik.EventDispatcher.Handlers
+namespace Iface.Oik.EventDispatcher.Workers
 {
-  public class HttpHandler : Handler
+  public class HttpWorker : Worker
   {
-    private readonly HttpClient _httpClient;
+    private readonly HttpClient _httpClient = new HttpClient();
 
     private Options _options;
-
-
-    public HttpHandler()
-    {
-      _httpClient = new HttpClient();
-    }
 
 
     public override void Configure(JObject options)
@@ -59,7 +52,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     }
 
 
-    protected override async Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
     {
       foreach (var tmEvent in tmEvents)
       {

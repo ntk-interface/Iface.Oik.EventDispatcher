@@ -11,14 +11,14 @@ using Xunit;
 
 namespace Iface.Oik.EventDispatcher.Test
 {
-  public class HandlerFilterTest
+  public class WorkerFilterTest
   {
     public class Constructor
     {
       [Fact]
       public void SetsDefaultValuesWhenNull()
       {
-        var filter = new HandlerFilter(null);
+        var filter = new WorkerFilter(null);
 
         filter.Types.Should().Be(TmEventTypes.Any);
         filter.Importances.Should().Equal(0, 1, 2, 3);
@@ -30,7 +30,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void SetsAnyTypesWhenNull()
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Types = null});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Types = null});
 
         filter.Types.Should().Be(TmEventTypes.Any);
       }
@@ -47,7 +47,7 @@ namespace Iface.Oik.EventDispatcher.Test
                   TmEventTypes.Acknowledge)]
       public void SetsCorrectTypes(TmEventTypes expected, params TmEventTypes[] types)
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Types = types.ToList()});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Types = types.ToList()});
 
         filter.Types.Should().Be(expected);
       }
@@ -56,7 +56,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void SetsAllImportancesWhenNull()
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Importances = null});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Importances = null});
 
         filter.Importances.Should().Equal(0, 1, 2, 3);
       }
@@ -68,7 +68,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [InlineData(1, 2, 3)]
       public void SetsCorrectImportances(params int[] importances)
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Importances = importances.ToList()});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Importances = importances.ToList()});
 
         filter.Importances.Should().Equal(importances);
       }
@@ -77,7 +77,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void SetsEmptyStatusesWhenNull()
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Statuses = null});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = null});
 
         filter.Statuses.Should().BeEmpty();
       }
@@ -86,7 +86,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void SetsEmptyStatusesWhenEmpty()
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Statuses = new List<string>()});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = new List<string>()});
 
         filter.Statuses.Should().BeEmpty();
       }
@@ -97,7 +97,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var statuses = new List<string> {"0:1:1", "0:1:6", "11:1:2..4", "0:1:9"};
 
-        var filter = new HandlerFilter(new ConfigFilterModel {Statuses = statuses});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
 
         filter.Statuses.Should().Equal(TmAddr.EncodeComplexInteger(0,  1, 1),
                                        TmAddr.EncodeComplexInteger(0,  1, 6),
@@ -122,7 +122,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var statuses = new List<string> {invalidStatus};
 
-        Action act = () => new HandlerFilter(new ConfigFilterModel {Statuses = statuses});
+        Action act = () => new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
 
         act.Should().Throw<Exception>();
       }
@@ -131,7 +131,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void SetsEmptyAnalogsWhenEmpty()
       {
-        var filter = new HandlerFilter(new ConfigFilterModel {Analogs = new List<string>()});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Analogs = new List<string>()});
 
         filter.Analogs.Should().BeEmpty();
       }
@@ -142,7 +142,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var statuses = new List<string> {"20:1:1", "10:3:5", "0:1:1..5"};
 
-        var filter = new HandlerFilter(new ConfigFilterModel {Statuses = statuses});
+        var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
 
         filter.Statuses.Should().Equal(TmAddr.EncodeComplexInteger(0,  1, 1),
                                        TmAddr.EncodeComplexInteger(0,  1, 2),
@@ -168,7 +168,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var analogs = new List<string> {invalidAnalog};
 
-        Action act = () => new HandlerFilter(new ConfigFilterModel {Analogs = analogs});
+        Action act = () => new WorkerFilter(new WorkerFilterConfig {Analogs = analogs});
 
         act.Should().Throw<Exception>();
       }
@@ -180,7 +180,7 @@ namespace Iface.Oik.EventDispatcher.Test
       [Fact]
       public void ReturnsTrueWhenEmptyFilter()
       {
-        var filter   = new HandlerFilter(null);
+        var filter   = new WorkerFilter(null);
         var tmEvents = new List<TmEvent>();
         for (var i = 0; i < 100; i++)
         {
@@ -204,7 +204,7 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ReturnsCorrectValueWithTypesFilter(TmEventTypes tmEventType, bool expected)
       {
         var types   = new List<TmEventTypes> {TmEventTypes.StatusChange, TmEventTypes.Alarm};
-        var filter  = new HandlerFilter(new ConfigFilterModel {Types = types});
+        var filter  = new WorkerFilter(new WorkerFilterConfig {Types = types});
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.RecType = (short) tmEventType);
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -221,7 +221,7 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ReturnsCorrectValueWithImportancesFilter(int importance, bool expected)
       {
         var importances = new List<int> {1, 2};
-        var filter      = new HandlerFilter(new ConfigFilterModel {Importances = importances});
+        var filter      = new WorkerFilter(new WorkerFilterConfig {Importances = importances});
         var tmEvent     = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Importance = (short) importance);
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -240,7 +240,7 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ReturnsCorrectValueWithStatusesFilter(int ch, int rtu, int point, bool expected)
       {
         var statuses   = new List<string> {"10:1:2..4", "10:1:6"};
-        var filter     = new HandlerFilter(new ConfigFilterModel {Statuses = statuses});
+        var filter     = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
         var statusType = TmNativeDefs.TmDataTypes.Status;
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
@@ -264,7 +264,7 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ReturnsCorrectValueWithAnalogsFilter(int ch, int rtu, int point, bool expected)
       {
         var analogs    = new List<string> {"20:3:2..4", "20:3:6"};
-        var filter     = new HandlerFilter(new ConfigFilterModel {Analogs = analogs});
+        var filter     = new WorkerFilter(new WorkerFilterConfig {Analogs = analogs});
         var analogType = TmNativeDefs.TmDataTypes.Analog;
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
@@ -283,7 +283,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var statuses = new List<string> {"10:1:2..4", "10:1:6"};
         var analogs  = new List<string> {"20:3:2..4", "20:3:6"};
-        var filter   = new HandlerFilter(new ConfigFilterModel {Statuses = statuses, Analogs = analogs});
+        var filter   = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses, Analogs = analogs});
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = 0;
@@ -301,7 +301,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var statuses   = new List<string> {"10:1:2..4", "10:1:6"};
         var analogs    = new List<string> {"20:3:2..4", "20:3:6"};
-        var filter     = new HandlerFilter(new ConfigFilterModel {Statuses = statuses, Analogs = analogs});
+        var filter     = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses, Analogs = analogs});
         var statusType = TmNativeDefs.TmDataTypes.Status;
         var analogType = TmNativeDefs.TmDataTypes.Analog;
         var tmEventStatusFalse = TmEventUtil.CreateRandomValidTmEvent(dto =>

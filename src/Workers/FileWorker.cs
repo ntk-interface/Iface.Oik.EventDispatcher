@@ -6,9 +6,9 @@ using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
 using Newtonsoft.Json.Linq;
 
-namespace Iface.Oik.EventDispatcher.Handlers
+namespace Iface.Oik.EventDispatcher.Workers
 {
-  public class FileHandler : Handler
+  public class FileWorker : Worker
   {
     private Options _options;
 
@@ -41,7 +41,7 @@ namespace Iface.Oik.EventDispatcher.Handlers
     } 
 
 
-    protected override Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
     {
       using (var writer = new StreamWriter(_options.FilePath, append: true))
       {

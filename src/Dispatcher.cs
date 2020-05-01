@@ -22,8 +22,8 @@ namespace Iface.Oik.EventDispatcher
     private readonly IOikDataApi              _api;
     private readonly IHostApplicationLifetime _applicationLifetime;
 
-    private readonly List<Handler> _handlers = new List<Handler>();
-    private          TmEventElix   _currentElix;
+    private readonly List<Worker> _workers = new List<Worker>();
+    private          TmEventElix  _currentElix;
 
 
     public Dispatcher(IOikDataApi api, IHostApplicationLifetime applicationLifetime)
@@ -35,7 +35,7 @@ namespace Iface.Oik.EventDispatcher
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-      if (!await LoadHandlers())
+      if (!await LoadWorkers())
       {
         _applicationLifetime.StopApplication();
         return;
@@ -47,7 +47,7 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    private async Task<bool> LoadHandlers()
+    private async Task<bool> LoadWorkers()
     {
       if (!Directory.Exists(ConfigsPath))
       {
@@ -55,14 +55,14 @@ namespace Iface.Oik.EventDispatcher
         return false;
       }
 
-      var allHandlers = FindAllHandlers();
+      var allWorkers = FindAllWorkers();
 
       foreach (var file in Directory.GetFiles(ConfigsPath, "*.json"))
       {
         var name = Path.GetFileName(file);
         try
         {
-          _handlers.Add(await CreateHandler(allHandlers, name, File.ReadAllText(file)));
+          _workers.Add(await CreateWorker(allWorkers, name, File.ReadAllText(file)));
         }
         catch (JsonException ex)
         {
@@ -74,53 +74,53 @@ namespace Iface.Oik.EventDispatcher
         }
       }
 
-      if (_handlers.Count == 0)
+      if (_workers.Count == 0)
       {
         Tms.PrintError("Не найдено ни одного обработчика событий");
         return false;
       }
 
-      Tms.PrintMessage($"Всего обработчиков событий: {_handlers.Count}");
+      Tms.PrintMessage($"Всего обработчиков событий: {_workers.Count}");
       return true;
     }
 
 
-    private static List<Type> FindAllHandlers()
+    private static List<Type> FindAllWorkers()
     {
       return Assembly.GetExecutingAssembly()
                      .GetTypes()
-                     .Where(t => t.IsSubclassOf(typeof(Handler)))
+                     .Where(t => t.IsSubclassOf(typeof(Worker)))
                      .ToList();
     }
 
 
-    public static async Task<Handler> CreateHandler(IEnumerable<Type> allHandlers, string name, string configText)
+    public static async Task<Worker> CreateWorker(IEnumerable<Type> allWorkers, string name, string configText)
     {
-      var config = JsonConvert.DeserializeObject<ConfigModel>(configText);
+      var config = JsonConvert.DeserializeObject<WorkerConfig>(configText);
 
-      var handler = CreateHandlerInstance(allHandlers, config.Handler);
-      if (handler == null)
+      var worker = CreateWorkerInstance(allWorkers, config.Worker);
+      if (worker == null)
       {
-        throw new Exception($"Не найден обработчик {config.Handler}");
+        throw new Exception($"Не найден обработчик {config.Worker}");
       }
 
-      handler.SetName(name)
-             .SetFilter(new HandlerFilter(config.Filter))
-             .Configure(config.Options);
-      await handler.Initialize();
+      worker.SetName(name)
+            .SetFilter(new WorkerFilter(config.Filter))
+            .Configure(config.Options);
+      await worker.Initialize();
 
-      return handler;
+      return worker;
     }
 
 
-    private static Handler CreateHandlerInstance(IEnumerable<Type> allHandlers, string name)
+    private static Worker CreateWorkerInstance(IEnumerable<Type> allWorkers, string name)
     {
-      var type = allHandlers.FirstOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+      var type = allWorkers.FirstOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
       if (type == null)
       {
         return null;
       }
-      return Activator.CreateInstance(type) as Handler;
+      return Activator.CreateInstance(type) as Worker;
     }
 
 
@@ -129,12 +129,12 @@ namespace Iface.Oik.EventDispatcher
       while (!stoppingToken.IsCancellationRequested)
       {
         await Task.Delay(5000, stoppingToken);
-        await Update();
+        await Dispatch();
       }
     }
 
 
-    private async Task Update() // todo unit test
+    private async Task Dispatch() // todo unit test
     {
       if (!await IsElixUpdated())
       {
@@ -148,7 +148,7 @@ namespace Iface.Oik.EventDispatcher
       }
       Tms.PrintDebug($"Обнаружены новые события: {newEvents.Count}. Начинается обработка");
 
-      await Task.WhenAll(_handlers.Select(h => h.FilterAndExecute(newEvents)));
+      await Task.WhenAll(_workers.Select(h => h.FilterAndDoWork(newEvents)));
 
       _currentElix = newElix;
     }

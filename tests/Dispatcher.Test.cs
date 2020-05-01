@@ -12,27 +12,27 @@ namespace Iface.Oik.EventDispatcher.Test
 {
   public class DispatcherTest
   {
-    public class CreateHandlerMethod
+    public class CreateWorkerMethod
     {
       [Fact]
       public void ThrowsWhenNotValidJson()
       {
-        Func<Task> act = async ()
-          => await Dispatcher.CreateHandler(AllHandlers,
-                                            A.Dummy<string>(),
-                                            "{NOT VALID JSON]");
+        Func<Task> act = async () =>
+          await Dispatcher.CreateWorker(AllWorkers,
+                                        A.Dummy<string>(),
+                                        "{NOT VALID JSON]");
 
         act.Should().Throw<JsonException>();
       }
 
 
       [Fact]
-      public void ThrowsWhenNotFoundHandler()
+      public void ThrowsWhenNotFoundWorker()
       {
-        Func<Task> act = async ()
-          => await Dispatcher.CreateHandler(AllHandlers,
-                                            A.Dummy<string>(),
-                                            GetDummyConfig("Totally not found handler"));
+        Func<Task> act = async () =>
+          await Dispatcher.CreateWorker(AllWorkers,
+                                        A.Dummy<string>(),
+                                        GetDummyConfig("Totally not found worker"));
 
         act.Should().Throw<Exception>();
       }
@@ -42,9 +42,9 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ThrowsWhenExceptionInsideConfigure()
       {
         Func<Task> act = async () =>
-          await Dispatcher.CreateHandler(AllHandlers,
-                                         A.Dummy<string>(),
-                                         GetDummyConfig(nameof(ThrowsInsideConfigureDummyHandler)));
+          await Dispatcher.CreateWorker(AllWorkers,
+                                        A.Dummy<string>(),
+                                        GetDummyConfig(nameof(ThrowsInsideConfigureDummyWorker)));
 
         act.Should().Throw<Exception>();
       }
@@ -54,43 +54,43 @@ namespace Iface.Oik.EventDispatcher.Test
       public void ThrowsWhenExceptionInsideInitialize()
       {
         Func<Task> act = async () =>
-          await Dispatcher.CreateHandler(AllHandlers,
-                                         A.Dummy<string>(),
-                                         GetDummyConfig(nameof(ThrowsInsideInitializeDummyHandler)));
+          await Dispatcher.CreateWorker(AllWorkers,
+                                        A.Dummy<string>(),
+                                        GetDummyConfig(nameof(ThrowsInsideInitializeDummyWorker)));
 
         act.Should().Throw<Exception>();
       }
 
 
       [Theory]
-      [InlineData(nameof(DummyHandler),        typeof(DummyHandler))]
-      [InlineData(nameof(AnotherDummyHandler), typeof(AnotherDummyHandler))]
-      public async void ReturnsCorrectHandler(string handlerName, Type expectedHandlerType)
+      [InlineData(nameof(DummyWorker),        typeof(DummyWorker))]
+      [InlineData(nameof(AnotherDummyWorker), typeof(AnotherDummyWorker))]
+      public async void ReturnsCorrectWorker(string workerName, Type expectedWorkerType)
       {
-        var result = await Dispatcher.CreateHandler(AllHandlers,
-                                                    A.Dummy<string>(),
-                                                    GetDummyConfig(handlerName));
+        var result = await Dispatcher.CreateWorker(AllWorkers,
+                                                   A.Dummy<string>(),
+                                                   GetDummyConfig(workerName));
 
-        result.Should().BeOfType(expectedHandlerType);
+        result.Should().BeOfType(expectedWorkerType);
       }
     }
 
 
-    private class DummyHandler : Handler
+    private class DummyWorker : Worker
     {
-      protected override Task Execute(IReadOnlyCollection<TmEvent> tmEvents)
+      protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
       {
         return Task.CompletedTask;
       }
     }
 
 
-    private class AnotherDummyHandler : DummyHandler
+    private class AnotherDummyWorker : DummyWorker
     {
     }
 
 
-    private class ThrowsInsideConfigureDummyHandler : DummyHandler
+    private class ThrowsInsideConfigureDummyWorker : DummyWorker
     {
       public override void Configure(JObject options)
       {
@@ -99,7 +99,7 @@ namespace Iface.Oik.EventDispatcher.Test
     }
 
 
-    private class ThrowsInsideInitializeDummyHandler : DummyHandler
+    private class ThrowsInsideInitializeDummyWorker : DummyWorker
     {
       public override Task Initialize()
       {
@@ -108,18 +108,18 @@ namespace Iface.Oik.EventDispatcher.Test
     }
 
 
-    private static readonly List<Type> AllHandlers = new List<Type>
+    private static readonly List<Type> AllWorkers = new List<Type>
     {
-      typeof(DummyHandler),
-      typeof(AnotherDummyHandler),
-      typeof(ThrowsInsideConfigureDummyHandler),
-      typeof(ThrowsInsideInitializeDummyHandler),
+      typeof(DummyWorker),
+      typeof(AnotherDummyWorker),
+      typeof(ThrowsInsideConfigureDummyWorker),
+      typeof(ThrowsInsideInitializeDummyWorker),
     };
 
 
-    private static string GetDummyConfig(string handlerName)
+    private static string GetDummyConfig(string workerName)
     {
-      return JsonConvert.SerializeObject(new {Handler = handlerName});
+      return JsonConvert.SerializeObject(new {Worker = workerName});
     }
   }
 }

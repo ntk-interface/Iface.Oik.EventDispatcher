@@ -7,14 +7,14 @@ using Xunit;
 
 namespace Iface.Oik.EventDispatcher.Test
 {
-  public class HandlerTest
+  public class WorkerTest
   {
     public class GetDefaultBodyMethod
     {
       [Fact]
       public void ReturnsNullWhenEventIsNull()
       {
-        var result = Handler.GetDefaultBody(null);
+        var result = Worker.GetDefaultBody(null);
 
         result.Should().BeNull();
       }
@@ -25,11 +25,10 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var ev = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetDefaultBody(ev);
+        var result = Worker.GetDefaultBody(ev);
 
-        result.Should()
-              .Be(
-                $"{ev.Time} | {ev.ImportanceAlias} | {ev.Text} | {ev.StateString} | {ev.TypeString} | {ev.Username}");
+        result.Should().Be(
+          $"{ev.Time} | {ev.ImportanceAlias} | {ev.Text} | {ev.StateString} | {ev.TypeString} | {ev.Username}");
       }
     }
 
@@ -41,7 +40,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var body = A.Dummy<string>();
 
-        var result = Handler.GetBodyOrDefault(body, null);
+        var result = Worker.GetBodyOrDefault(body, null);
 
         result.Should().BeNull();
       }
@@ -52,9 +51,9 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetBodyOrDefault(null, tmEvent);
+        var result = Worker.GetBodyOrDefault(null, tmEvent);
 
-        result.Should().Be(Handler.GetDefaultBody(tmEvent));
+        result.Should().Be(Worker.GetDefaultBody(tmEvent));
       }
 
 
@@ -64,9 +63,9 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetBodyOrDefault(body, tmEvent);
+        var result = Worker.GetBodyOrDefault(body, tmEvent);
 
-        result.Should().Be(Handler.GetBody(body, tmEvent));
+        result.Should().Be(Worker.GetBody(body, tmEvent));
       }
 
 
@@ -77,7 +76,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {time}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.UpdateTime = time);
 
-        var result = Handler.GetBodyOrDefault(body, tmEvent);
+        var result = Worker.GetBodyOrDefault(body, tmEvent);
 
         result.Should().Be($"Dummy {time}");
       }
@@ -91,7 +90,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var ev = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetBody(null, ev);
+        var result = Worker.GetBody(null, ev);
 
         result.Should().BeNull();
       }
@@ -102,7 +101,7 @@ namespace Iface.Oik.EventDispatcher.Test
       {
         var body = "Dummy";
 
-        var result = Handler.GetBody(body, null);
+        var result = Worker.GetBody(body, null);
 
         result.Should().BeNull();
       }
@@ -114,7 +113,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy no substitutes";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be(body);
       }
@@ -127,7 +126,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {time}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.UpdateTime = time);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {time}");
       }
@@ -143,7 +142,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {importanceId}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Importance = importanceId);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {importanceId}");
       }
@@ -159,7 +158,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {importance}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Importance = importanceId);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {importance}");
       }
@@ -172,7 +171,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {name}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.Name = name);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {name}");
       }
@@ -185,7 +184,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {state}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.RecStateText = state);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {state}");
       }
@@ -198,7 +197,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {type}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.RecTypeName = type);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {type}");
       }
@@ -211,7 +210,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {username}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.UserName = username);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {username}");
       }
@@ -224,7 +223,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {tmAddr}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.TmaStr = tmAddr);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {tmAddr}");
       }
@@ -236,9 +235,9 @@ namespace Iface.Oik.EventDispatcher.Test
         var body    = "Dummy {defaultBody}";
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent();
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
-        result.Should().Be($"Dummy {Handler.GetDefaultBody(tmEvent)}");
+        result.Should().Be($"Dummy {Worker.GetDefaultBody(tmEvent)}");
       }
 
 
@@ -254,7 +253,7 @@ namespace Iface.Oik.EventDispatcher.Test
           dto.RecStateText = state;
         });
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {time} {name} {state} {name}");
       }
@@ -269,7 +268,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var time    = new DateTime(2020, 04, 12, 09, 07, 00);
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto => dto.UpdateTime = time);
 
-        var result = Handler.GetBody(body, tmEvent);
+        var result = Worker.GetBody(body, tmEvent);
 
         result.Should().Be($"Dummy {expected}");
       }

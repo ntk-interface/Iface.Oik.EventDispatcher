@@ -10,13 +10,13 @@ using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher
 {
-  public abstract class Handler
+  public abstract class Worker
   {
-    private string        _name;
-    private HandlerFilter _filter;
+    private string       _name;
+    private WorkerFilter _filter;
 
 
-    public Handler SetName(string name)
+    public Worker SetName(string name)
     {
       _name = name;
 
@@ -24,7 +24,7 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    public Handler SetFilter(HandlerFilter filter)
+    public Worker SetFilter(WorkerFilter filter)
     {
       _filter = filter;
 
@@ -32,7 +32,7 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    public async Task FilterAndExecute(IReadOnlyCollection<TmEvent> tmEvents) // todo unit test
+    public async Task FilterAndDoWork(IReadOnlyCollection<TmEvent> tmEvents) // todo unit test
     {
       var suitableEvents = tmEvents.Where(ev => _filter.IsEventSuitable(ev))
                                    .ToList();
@@ -43,7 +43,7 @@ namespace Iface.Oik.EventDispatcher
       }
       try
       {
-        await Execute(suitableEvents);
+        await DoWork(suitableEvents);
         Tms.PrintDebug($"Обработаны события для обработчика {_name}");
       }
       catch (Exception ex)
@@ -65,7 +65,7 @@ namespace Iface.Oik.EventDispatcher
       {
         return null;
       }
-      
+
       var stringBuilder = new StringBuilder(template).Replace("{time}", tmEvent.Time.ToString())
                                                      .Replace("{importanceId}", tmEvent.Importance.ToString())
                                                      .Replace("{importance}",   tmEvent.ImportanceAlias)
@@ -104,6 +104,6 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    protected abstract Task Execute(IReadOnlyCollection<TmEvent> tmEvents);
+    protected abstract Task DoWork(IReadOnlyCollection<TmEvent> tmEvents);
   }
 }

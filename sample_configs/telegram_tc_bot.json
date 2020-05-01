@@ -1,5 +1,5 @@
 {
-	"handler": "TelegramHandler",
+	"worker": "TelegramWorker",
 	"options": {
 		"botToken": "<telegram-token>",
 		"chatIds": [0, 1],

@@ -4,15 +4,15 @@ using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher
 {
-  public class ConfigModel
+  public class WorkerConfig
   {
-    public string            Handler { get; set; }
-    public ConfigFilterModel Filter  { get; set; }
-    public JObject           Options { get; set; }
+    public string             Worker  { get; set; }
+    public WorkerFilterConfig Filter  { get; set; }
+    public JObject            Options { get; set; }
   }
 
 
-  public class ConfigFilterModel
+  public class WorkerFilterConfig
   {
     public List<TmEventTypes> Types       { get; set; }
     public List<int>          Importances { get; set; }

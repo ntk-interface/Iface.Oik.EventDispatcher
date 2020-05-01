@@ -5,7 +5,7 @@ using Iface.Oik.Tm.Interfaces;
 
 namespace Iface.Oik.EventDispatcher
 {
-  public class HandlerFilter
+  public class WorkerFilter
   {
     public TmEventTypes Types       { get; private set; }
     public List<int>    Importances { get; } = new List<int>();
@@ -13,12 +13,12 @@ namespace Iface.Oik.EventDispatcher
     public List<uint>   Analogs     { get; } = new List<uint>();
 
 
-    public HandlerFilter(ConfigFilterModel configFilter)
+    public WorkerFilter(WorkerFilterConfig filterConfig)
     {
-      SetTypes(configFilter?.Types);
-      SetImportances(configFilter?.Importances);
-      SetStatuses(configFilter?.Statuses);
-      SetAnalogs(configFilter?.Analogs);
+      SetTypes(filterConfig?.Types);
+      SetImportances(filterConfig?.Importances);
+      SetStatuses(filterConfig?.Statuses);
+      SetAnalogs(filterConfig?.Analogs);
     }
 
 
