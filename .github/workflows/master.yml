@@ -51,8 +51,8 @@ jobs:
         
     - name: Make archives
       run: |
-        7z a ${{steps.release.outputs.windows_release}} ./dist_windows/*
-        tar -czf ${{steps.release.outputs.linux_release}} -C dist_linux .
+        7z a ${{steps.release.outputs.artifact_windows}} ./dist_windows/*
+        tar -czf ${{steps.release.outputs.artifact_linux}} -C dist_linux .
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
