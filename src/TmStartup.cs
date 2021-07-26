@@ -11,17 +11,18 @@ namespace Iface.Oik.EventDispatcher
   public class ServerService : CommonServerService, IHostedService
   {
   }
-  
-  
+
+
   public class TmStartup : BackgroundService
   {
     private const string ApplicationName = "EventDispatcher";
     private const string TraceName       = "EventDispatcher";
     private const string TraceComment    = "<Iface.Oik.EventDispatcher>";
 
-    private static int        _tmCid;
-    private static TmUserInfo _userInfo;
-    private static uint       _stopEventHandle;
+    private static int              _tmCid;
+    private static TmUserInfo       _userInfo;
+    private static TmServerFeatures _serverFeatures;
+    private static IntPtr           _stopEventHandle;
 
     private readonly IHostApplicationLifetime _applicationLifetime;
     private readonly ICommonInfrastructure    _infr;
@@ -38,7 +39,7 @@ namespace Iface.Oik.EventDispatcher
     {
       var commandLineArgs = Environment.GetCommandLineArgs();
 
-      (_tmCid, _userInfo, _stopEventHandle) =
+      (_tmCid, _userInfo, _serverFeatures, _stopEventHandle) =
         Tms.InitializeAsTaskWithoutSql(new TmOikTaskOptions
                                        {
                                          TraceName    = TraceName,
@@ -59,7 +60,7 @@ namespace Iface.Oik.EventDispatcher
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-      _infr.InitializeTmWithoutSql(_tmCid, _userInfo);
+      _infr.InitializeTmWithoutSql(_tmCid, _userInfo, _serverFeatures);
       return base.StartAsync(cancellationToken);
     }
 

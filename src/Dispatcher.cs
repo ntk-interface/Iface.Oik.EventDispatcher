@@ -14,10 +14,7 @@ namespace Iface.Oik.EventDispatcher
 {
   public class Dispatcher : BackgroundService
   {
-    private static readonly string ConfigsPath = Path.Combine(
-      Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-      "..",
-      "configs");
+    private static readonly string ConfigsPath = Path.Combine(AppContext.BaseDirectory, "configs");
 
     private readonly IOikDataApi              _api;
     private readonly IHostApplicationLifetime _applicationLifetime;

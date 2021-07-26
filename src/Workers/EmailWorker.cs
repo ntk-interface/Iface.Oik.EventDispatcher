@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
 using Newtonsoft.Json.Linq;
@@ -85,7 +86,16 @@ namespace Iface.Oik.EventDispatcher.Workers
 
       using (var client = new SmtpClient())
       {
-        await client.ConnectAsync(_options.Host, _options.Port, _options.UseSsl);
+        if (_options.UseSsl)
+        {
+          await client.ConnectAsync(_options.Host, _options.Port, true);
+        }
+        else
+        {
+          client.CheckCertificateRevocation = false;
+          await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None);
+        }
+        
         if (IsAuthRequired())
         {
           await client.AuthenticateAsync(_options.Login, _options.Password);
