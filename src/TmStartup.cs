@@ -11,8 +11,8 @@ namespace Iface.Oik.EventDispatcher
   public class ServerService : CommonServerService, IHostedService
   {
   }
-  
-  
+
+
   public class TmStartup : BackgroundService
   {
     private const string ApplicationName = "EventDispatcher";
@@ -22,7 +22,7 @@ namespace Iface.Oik.EventDispatcher
     private static int              _tmCid;
     private static TmUserInfo       _userInfo;
     private static TmServerFeatures _serverFeatures;
-    private static uint             _stopEventHandle;
+    private static IntPtr           _stopEventHandle;
 
     private readonly IHostApplicationLifetime _applicationLifetime;
     private readonly ICommonInfrastructure    _infr;
