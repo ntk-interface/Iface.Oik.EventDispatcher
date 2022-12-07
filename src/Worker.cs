@@ -74,6 +74,7 @@ namespace Iface.Oik.EventDispatcher
                                                      .Replace("{type}",         tmEvent.TypeString)
                                                      .Replace("{username}",     tmEvent.Username)
                                                      .Replace("{tmAddr}",       tmEvent.TmAddrString)
+                                                     .Replace("{ref}",          tmEvent.Reference?.ToString() ?? "-")
                                                      .Replace("{defaultBody}",  GetDefaultBody(tmEvent));
       var str = stringBuilder.ToString();
 
