@@ -28,9 +28,9 @@ namespace Iface.Oik.EventDispatcher.Workers
 
     private class Options
     {
-      public string BotToken { get; set; }
-      public int[]  ChatIds  { get; set; }
-      public string Body     { get; set; }
+      public string   BotToken { get; set; }
+      public string[] ChatIds  { get; set; }
+      public string   Body     { get; set; }
     }
 
 
