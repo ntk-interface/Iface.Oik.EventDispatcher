@@ -48,7 +48,7 @@ namespace Iface.Oik.EventDispatcher.Workers
     {
       _bot = new TelegramBotClient(_options.BotToken);
 
-      await _bot.GetMeAsync();
+      await _bot.GetMe();
     }
 
 
@@ -58,7 +58,7 @@ namespace Iface.Oik.EventDispatcher.Workers
       {
         foreach (var chatId in _options.ChatIds)
         {
-          await _bot.SendTextMessageAsync(chatId, GetBodyOrDefault(_options.Body, tmEvent));
+          await _bot.SendMessage(chatId, GetBodyOrDefault(_options.Body, tmEvent));
         }
       }
     }
