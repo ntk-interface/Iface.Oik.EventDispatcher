@@ -125,13 +125,13 @@ namespace Iface.Oik.EventDispatcher
     {
       while (!stoppingToken.IsCancellationRequested)
       {
-        await Task.Delay(5000, stoppingToken);
-        await Dispatch();
+        await Task.Delay(2500, stoppingToken);
+        await Dispatch(stoppingToken);
       }
     }
 
 
-    private async Task Dispatch() // todo unit test
+    private async Task Dispatch(CancellationToken stoppingToken)
     {
       if (!await IsElixUpdated())
       {
@@ -145,13 +145,13 @@ namespace Iface.Oik.EventDispatcher
       }
       Tms.PrintDebug($"Обнаружены новые события: {newEvents.Count}. Начинается обработка");
 
-      await Task.WhenAll(_workers.Select(h => h.FilterAndDoWork(newEvents)));
+      await Task.WhenAll(_workers.Select(h => h.FilterAndDoWork(newEvents, stoppingToken)));
 
       _currentElix = newElix;
     }
 
 
-    private async Task<bool> IsElixUpdated() // todo unit test
+    private async Task<bool> IsElixUpdated()
     {
       var newElix = await _api.GetCurrentEventsElix();
       if (newElix == null) // вероятно ошибка связи

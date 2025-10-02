@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Iface.Oik.Tm.Helpers;
 using Iface.Oik.Tm.Interfaces;
@@ -32,7 +33,7 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    public async Task FilterAndDoWork(IReadOnlyCollection<TmEvent> tmEvents) // todo unit test
+    public async Task FilterAndDoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
     {
       var suitableEvents = tmEvents.Where(ev => _filter.IsEventSuitable(ev))
                                    .ToList();
@@ -43,7 +44,7 @@ namespace Iface.Oik.EventDispatcher
       }
       try
       {
-        await DoWork(suitableEvents);
+        await DoWork(suitableEvents, stoppingToken);
         Tms.PrintDebug($"Обработаны события для обработчика {_name}");
       }
       catch (Exception ex)
@@ -105,6 +106,6 @@ namespace Iface.Oik.EventDispatcher
     }
 
 
-    protected abstract Task DoWork(IReadOnlyCollection<TmEvent> tmEvents);
+    protected abstract Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken);
   }
 }

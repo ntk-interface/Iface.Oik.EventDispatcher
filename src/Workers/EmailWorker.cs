@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
@@ -85,7 +86,7 @@ namespace Iface.Oik.EventDispatcher.Workers
     }
 
 
-    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
     {
       var mimeMessage = new MimeMessage();
 
@@ -96,17 +97,17 @@ namespace Iface.Oik.EventDispatcher.Workers
       {
         if (_options.UseSsl)
         {
-          await client.ConnectAsync(_options.Host, _options.Port, true);
+          await client.ConnectAsync(_options.Host, _options.Port, true, stoppingToken);
         }
         else
         {
           client.CheckCertificateRevocation = false;
-          await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None);
+          await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None, stoppingToken);
         }
         
         if (IsAuthRequired())
         {
-          await client.AuthenticateAsync(_options.Login, _options.Password);
+          await client.AuthenticateAsync(_options.Login, _options.Password, stoppingToken);
         }
 
         if (_options.BatchEvents)
@@ -116,7 +117,7 @@ namespace Iface.Oik.EventDispatcher.Workers
           {
             Text = string.Join("\n\n", tmEvents.Select(tmEvent => GetBodyOrDefault(_options.Body, tmEvent)))
           };
-          await client.SendAsync(mimeMessage);
+          await client.SendAsync(mimeMessage, stoppingToken);
         }
         else
         {
@@ -127,11 +128,11 @@ namespace Iface.Oik.EventDispatcher.Workers
             {
               Text = GetBodyOrDefault(_options.Body, tmEvent)
             };
-            await client.SendAsync(mimeMessage);
+            await client.SendAsync(mimeMessage, stoppingToken);
           }
         }
 
-        await client.DisconnectAsync(true);
+        await client.DisconnectAsync(true, stoppingToken);
       }
     }
 

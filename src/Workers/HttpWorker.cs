@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
@@ -52,7 +53,7 @@ namespace Iface.Oik.EventDispatcher.Workers
     }
 
 
-    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
     {
       foreach (var tmEvent in tmEvents)
       {
@@ -63,7 +64,7 @@ namespace Iface.Oik.EventDispatcher.Workers
           request.Content = new StringContent(GetBody(_options.Body, tmEvent));
         }
 
-        await _httpClient.SendAsync(request);
+        await _httpClient.SendAsync(request, stoppingToken);
       }
     }
 

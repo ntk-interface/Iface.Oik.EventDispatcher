@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
@@ -41,7 +42,7 @@ namespace Iface.Oik.EventDispatcher.Workers
     } 
 
 
-    protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
     {
       using (var writer = new StreamWriter(_options.FilePath, append: true))
       {

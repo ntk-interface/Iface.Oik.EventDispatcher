@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
@@ -52,13 +53,13 @@ namespace Iface.Oik.EventDispatcher.Workers
     }
 
 
-    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
+    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
     {
       foreach (var tmEvent in tmEvents)
       {
         foreach (var chatId in _options.ChatIds)
         {
-          await _bot.SendMessage(chatId, GetBodyOrDefault(_options.Body, tmEvent));
+          await _bot.SendMessage(chatId, GetBodyOrDefault(_options.Body, tmEvent), cancellationToken: stoppingToken);
         }
       }
     }

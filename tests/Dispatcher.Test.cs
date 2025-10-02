@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
@@ -78,7 +79,7 @@ namespace Iface.Oik.EventDispatcher.Test
 
     private class DummyWorker : Worker
     {
-      protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
+      protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
       {
         return Task.CompletedTask;
       }
