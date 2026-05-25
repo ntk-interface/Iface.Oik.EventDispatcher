@@ -7,60 +7,59 @@ using Iface.Oik.Tm.Interfaces;
 using Newtonsoft.Json.Linq;
 using Telegram.Bot;
 
-namespace Iface.Oik.EventDispatcher.Workers
+namespace Iface.Oik.EventDispatcher.Workers;
+
+public class TelegramWorker : Worker
 {
-  public class TelegramWorker : Worker
+  private Options           _options;
+  private TelegramBotClient _bot;
+
+
+  public override void Configure(JObject options)
   {
-    private Options           _options;
-    private TelegramBotClient _bot;
-
-
-    public override void Configure(JObject options)
+    if (options == null)
     {
-      if (options == null)
+      throw new Exception("Не заданы настройки");
+    }
+
+    _options = options.ToObject<Options>();
+    new OptionsValidator().ValidateAndThrow(_options);
+  }
+
+
+  private class Options
+  {
+    public string   BotToken { get; set; }
+    public string[] ChatIds  { get; set; }
+    public string   Body     { get; set; }
+  }
+
+
+  private class OptionsValidator : AbstractValidator<Options>
+  {
+    public OptionsValidator()
+    {
+      RuleFor(o => o.BotToken).NotNull().NotEmpty();
+      RuleFor(o => o.ChatIds).NotNull().NotEmpty();
+    }
+  }
+
+
+  public override async Task Initialize()
+  {
+    _bot = new TelegramBotClient(_options.BotToken);
+
+    await _bot.GetMe();
+  }
+
+
+  protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
+  {
+    foreach (var tmEvent in tmEvents)
+    {
+      foreach (var chatId in _options.ChatIds)
       {
-        throw new Exception("Не заданы настройки");
-      }
-
-      _options = options.ToObject<Options>();
-      new OptionsValidator().ValidateAndThrow(_options);
-    }
-
-
-    private class Options
-    {
-      public string   BotToken { get; set; }
-      public string[] ChatIds  { get; set; }
-      public string   Body     { get; set; }
-    }
-
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-      public OptionsValidator()
-      {
-        RuleFor(o => o.BotToken).NotNull().NotEmpty();
-        RuleFor(o => o.ChatIds).NotNull().NotEmpty();
-      }
-    }
-
-
-    public override async Task Initialize()
-    {
-      _bot = new TelegramBotClient(_options.BotToken);
-
-      await _bot.GetMe();
-    }
-
-
-    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
-    {
-      foreach (var tmEvent in tmEvents)
-      {
-        foreach (var chatId in _options.ChatIds)
-        {
-          await _bot.SendMessage(chatId, GetBodyOrDefault(_options.Body, tmEvent), cancellationToken: stoppingToken);
-        }
+        await _bot.SendMessage(chatId, GetBodyOrDefault(_options.Body, tmEvent), cancellationToken: stoppingToken);
       }
     }
   }

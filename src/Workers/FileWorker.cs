@@ -7,52 +7,51 @@ using FluentValidation;
 using Iface.Oik.Tm.Interfaces;
 using Newtonsoft.Json.Linq;
 
-namespace Iface.Oik.EventDispatcher.Workers
+namespace Iface.Oik.EventDispatcher.Workers;
+
+public class FileWorker : Worker
 {
-  public class FileWorker : Worker
+  private Options _options;
+
+
+  public override void Configure(JObject options)
   {
-    private Options _options;
-
-
-    public override void Configure(JObject options)
+    if (options == null)
     {
-      if (options == null)
-      {
-        throw new Exception("Не заданы настройки");
-      }
-
-      _options = options.ToObject<Options>();
-      new OptionsValidator().ValidateAndThrow(_options);
+      throw new Exception("Не заданы настройки");
     }
 
+    _options = options.ToObject<Options>();
+    new OptionsValidator().ValidateAndThrow(_options);
+  }
 
-    private class Options
+
+  private class Options
+  {
+    public string FilePath { get; set; }
+    public string Body     { get; set; }
+  }
+
+
+  private class OptionsValidator : AbstractValidator<Options>
+  {
+    public OptionsValidator()
     {
-      public string FilePath { get; set; }
-      public string Body     { get; set; }
+      RuleFor(o => o.FilePath).NotNull().NotEmpty();
+    }
+  } 
+
+
+  protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
+  {
+    using (var writer = new StreamWriter(_options.FilePath, append: true))
+    {
+      foreach (var tmEvent in tmEvents)
+      {
+        writer.WriteLine(GetBodyOrDefault(_options.Body, tmEvent));
+      }
     }
 
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-      public OptionsValidator()
-      {
-        RuleFor(o => o.FilePath).NotNull().NotEmpty();
-      }
-    } 
-
-
-    protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
-    {
-      using (var writer = new StreamWriter(_options.FilePath, append: true))
-      {
-        foreach (var tmEvent in tmEvents)
-        {
-          writer.WriteLine(GetBodyOrDefault(_options.Body, tmEvent));
-        }
-      }
-
-      return Task.CompletedTask;
-    }
+    return Task.CompletedTask;
   }
 }

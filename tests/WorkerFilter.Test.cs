@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AutoFixture;
 using FluentAssertions;
 using Iface.Oik.EventDispatcher.Test.Util;
-using Iface.Oik.Tm.Dto;
 using Iface.Oik.Tm.Interfaces;
 using Iface.Oik.Tm.Native.Interfaces;
 using Xunit;
@@ -99,12 +97,12 @@ namespace Iface.Oik.EventDispatcher.Test
 
         var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
 
-        filter.Statuses.Should().Equal(TmAddr.EncodeComplexInteger(0,  1, 1),
-                                       TmAddr.EncodeComplexInteger(0,  1, 6),
-                                       TmAddr.EncodeComplexInteger(0,  1, 9),
-                                       TmAddr.EncodeComplexInteger(11, 1, 2),
-                                       TmAddr.EncodeComplexInteger(11, 1, 3),
-                                       TmAddr.EncodeComplexInteger(11, 1, 4));
+        filter.Statuses.Should().Equal(TmAddr.EncodeTma(0,  1, 1),
+                                       TmAddr.EncodeTma(0,  1, 6),
+                                       TmAddr.EncodeTma(0,  1, 9),
+                                       TmAddr.EncodeTma(11, 1, 2),
+                                       TmAddr.EncodeTma(11, 1, 3),
+                                       TmAddr.EncodeTma(11, 1, 4));
       }
 
 
@@ -144,13 +142,13 @@ namespace Iface.Oik.EventDispatcher.Test
 
         var filter = new WorkerFilter(new WorkerFilterConfig {Statuses = statuses});
 
-        filter.Statuses.Should().Equal(TmAddr.EncodeComplexInteger(0,  1, 1),
-                                       TmAddr.EncodeComplexInteger(0,  1, 2),
-                                       TmAddr.EncodeComplexInteger(0,  1, 3),
-                                       TmAddr.EncodeComplexInteger(0,  1, 4),
-                                       TmAddr.EncodeComplexInteger(0,  1, 5),
-                                       TmAddr.EncodeComplexInteger(10, 3, 5),
-                                       TmAddr.EncodeComplexInteger(20, 1, 1));
+        filter.Statuses.Should().Equal(TmAddr.EncodeTma(0,  1, 1),
+                                       TmAddr.EncodeTma(0,  1, 2),
+                                       TmAddr.EncodeTma(0,  1, 3),
+                                       TmAddr.EncodeTma(0,  1, 4),
+                                       TmAddr.EncodeTma(0,  1, 5),
+                                       TmAddr.EncodeTma(10, 3, 5),
+                                       TmAddr.EncodeTma(20, 1, 1));
       }
 
 
@@ -245,7 +243,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) statusType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
+          dto.Tma    = TmAddr.EncodeTma(ch, rtu, point);
         });
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -269,7 +267,7 @@ namespace Iface.Oik.EventDispatcher.Test
         var tmEvent = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) analogType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(ch, rtu, point);
+          dto.Tma    = TmAddr.EncodeTma(ch, rtu, point);
         });
 
         var result = filter.IsEventSuitable(tmEvent);
@@ -307,22 +305,22 @@ namespace Iface.Oik.EventDispatcher.Test
         var tmEventStatusFalse = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) statusType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
+          dto.Tma    = TmAddr.EncodeTma(20, 3, 6);
         });
         var tmEventStatusTrue = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) statusType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
+          dto.Tma    = TmAddr.EncodeTma(10, 1, 6);
         });
         var tmEventAnalogFalse = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) analogType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(10, 1, 6);
+          dto.Tma    = TmAddr.EncodeTma(10, 1, 6);
         });
         var tmEventAnalogTrue = TmEventUtil.CreateRandomValidTmEvent(dto =>
         {
           dto.TmType = (short) analogType;
-          dto.Tma    = (int) TmAddr.EncodeComplexInteger(20, 3, 6);
+          dto.Tma    = TmAddr.EncodeTma(20, 3, 6);
         });
 
         filter.IsEventSuitable(tmEventStatusFalse).Should().BeFalse();

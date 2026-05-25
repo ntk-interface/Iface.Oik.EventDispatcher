@@ -3,160 +3,159 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Iface.Oik.Tm.Interfaces;
 
-namespace Iface.Oik.EventDispatcher
+namespace Iface.Oik.EventDispatcher;
+
+public class WorkerFilter
 {
-  public class WorkerFilter
+  public TmEventTypes Types       { get; private set; }
+  public List<int>    Importances { get; } = new();
+  public List<int>    Statuses    { get; } = new();
+  public List<int>    Analogs     { get; } = new();
+
+
+  public WorkerFilter(WorkerFilterConfig filterConfig)
   {
-    public TmEventTypes Types       { get; private set; }
-    public List<int>    Importances { get; } = new List<int>();
-    public List<uint>   Statuses    { get; } = new List<uint>();
-    public List<uint>   Analogs     { get; } = new List<uint>();
+    SetTypes(filterConfig?.Types);
+    SetImportances(filterConfig?.Importances);
+    SetStatuses(filterConfig?.Statuses);
+    SetAnalogs(filterConfig?.Analogs);
+  }
 
 
-    public WorkerFilter(WorkerFilterConfig filterConfig)
+  private void SetTypes(List<TmEventTypes> types)
+  {
+    if (types == null)
     {
-      SetTypes(filterConfig?.Types);
-      SetImportances(filterConfig?.Importances);
-      SetStatuses(filterConfig?.Statuses);
-      SetAnalogs(filterConfig?.Analogs);
+      Types = TmEventTypes.Any;
+      return;
+    }
+    types.ForEach(t => Types |= t);
+  }
+
+
+  private void SetImportances(List<int> importances)
+  {
+    Importances.AddRange(importances ?? new List<int> {0, 1, 2, 3});
+  }
+
+
+  private void SetStatuses(List<string> statuses)
+  {
+    if (statuses       == null ||
+        statuses.Count == 0)
+    {
+      return;
     }
 
-
-    private void SetTypes(List<TmEventTypes> types)
+    var addrGroupRegex = new Regex(@"^(\d+):(\d+):(\d+)..(\d+)$");
+    foreach (var status in statuses)
     {
-      if (types == null)
+      if (TmAddr.TryParse(status, out var tmAddr, TmType.Status))
       {
-        Types = TmEventTypes.Any;
-        return;
+        Statuses.Add(tmAddr.ToTma());
+        continue;
       }
-      types.ForEach(t => Types |= t);
-    }
-
-
-    private void SetImportances(List<int> importances)
-    {
-      Importances.AddRange(importances ?? new List<int> {0, 1, 2, 3});
-    }
-
-
-    private void SetStatuses(List<string> statuses)
-    {
-      if (statuses       == null ||
-          statuses.Count == 0)
+      var groupMatch = addrGroupRegex.Match(status);
+      if (groupMatch.Success)
       {
-        return;
-      }
-
-      var addrGroupRegex = new Regex(@"^(\d+):(\d+):(\d+)..(\d+)$");
-      foreach (var status in statuses)
-      {
-        if (TmAddr.TryParse(status, out var tmAddr, TmType.Status))
+        var ch         = int.Parse(groupMatch.Groups[1].Value);
+        var rtu        = int.Parse(groupMatch.Groups[2].Value);
+        var firstPoint = int.Parse(groupMatch.Groups[3].Value);
+        var lastPoint  = int.Parse(groupMatch.Groups[4].Value);
+        for (var point = firstPoint; point <= lastPoint; point++)
         {
-          Statuses.Add(tmAddr.ToComplexInteger());
-          continue;
-        }
-        var groupMatch = addrGroupRegex.Match(status);
-        if (groupMatch.Success)
-        {
-          var ch         = int.Parse(groupMatch.Groups[1].Value);
-          var rtu        = int.Parse(groupMatch.Groups[2].Value);
-          var firstPoint = int.Parse(groupMatch.Groups[3].Value);
-          var lastPoint  = int.Parse(groupMatch.Groups[4].Value);
-          for (var point = firstPoint; point <= lastPoint; point++)
+          try
           {
-            try
-            {
-              Statuses.Add(new TmAddr(TmType.Status, ch, rtu, point).ToComplexInteger());
-            }
-            catch (Exception)
-            {
-              throw new Exception($"Некорректная группа сигналов: {status}");
-            }
+            Statuses.Add(new TmAddr(TmType.Status, ch, rtu, point).ToTma());
           }
-          continue;
-        }
-        throw new Exception($"Некорректный адрес сигнала: {status}");
-      }
-      
-      Statuses.Sort();
-    }
-
-
-    private void SetAnalogs(List<string> analogs)
-    {
-      if (analogs       == null ||
-          analogs.Count == 0)
-      {
-        return;
-      }
-
-      var addrGroupRegex = new Regex(@"^(\d+):(\d+):(\d+)..(\d+)$");
-      foreach (var analog in analogs)
-      {
-        if (TmAddr.TryParse(analog, out var tmAddr, TmType.Analog))
-        {
-          Analogs.Add(tmAddr.ToComplexInteger());
-          continue;
-        }
-        var groupMatch = addrGroupRegex.Match(analog);
-        if (groupMatch.Success)
-        {
-          var ch         = int.Parse(groupMatch.Groups[1].Value);
-          var rtu        = int.Parse(groupMatch.Groups[2].Value);
-          var firstPoint = int.Parse(groupMatch.Groups[3].Value);
-          var lastPoint  = int.Parse(groupMatch.Groups[4].Value);
-          for (var point = firstPoint; point <= lastPoint; point++)
+          catch (Exception)
           {
-            try
-            {
-              Analogs.Add(new TmAddr(TmType.Analog, ch, rtu, point).ToComplexInteger());
-            }
-            catch (Exception)
-            {
-              throw new Exception($"Некорректная группа сигналов: {analog}");
-            }
+            throw new Exception($"Некорректная группа сигналов: {status}");
           }
-          continue;
         }
-        throw new Exception($"Некорректный адрес измерения: {analog}");
+        continue;
       }
+      throw new Exception($"Некорректный адрес сигнала: {status}");
+    }
       
-      Analogs.Sort();
+    Statuses.Sort();
+  }
+
+
+  private void SetAnalogs(List<string> analogs)
+  {
+    if (analogs       == null ||
+        analogs.Count == 0)
+    {
+      return;
     }
 
-
-    public bool IsEventSuitable(TmEvent tmEvent)
+    var addrGroupRegex = new Regex(@"^(\d+):(\d+):(\d+)..(\d+)$");
+    foreach (var analog in analogs)
     {
-      return IsEventSuitableForTypes(tmEvent)       &&
-             IsEventSuitableForImportances(tmEvent) &&
-             IsEventSuitableForStatusesAndAnalogs(tmEvent);
-    }
-
-
-    private bool IsEventSuitableForTypes(TmEvent tmEvent)
-    {
-      return Types.HasFlag(tmEvent.Type);
-    }
-
-
-    private bool IsEventSuitableForImportances(TmEvent tmEvent)
-    {
-      return Importances.Contains(tmEvent.Importance);
-    }
-
-
-    private bool IsEventSuitableForStatusesAndAnalogs(TmEvent tmEvent)
-    {
-      if (Statuses.Count == 0 &&
-          Analogs.Count  == 0)
+      if (TmAddr.TryParse(analog, out var tmAddr, TmType.Analog))
       {
-        return true;
+        Analogs.Add(tmAddr.ToTma());
+        continue;
       }
-      return (tmEvent.HasTmStatus &&
-              Statuses.BinarySearch(tmEvent.TmAddrComplexInteger) >= 0)
-             ||
-             (tmEvent.HasTmAnalog &&
-              Analogs.BinarySearch(tmEvent.TmAddrComplexInteger) >= 0);
+      var groupMatch = addrGroupRegex.Match(analog);
+      if (groupMatch.Success)
+      {
+        var ch         = int.Parse(groupMatch.Groups[1].Value);
+        var rtu        = int.Parse(groupMatch.Groups[2].Value);
+        var firstPoint = int.Parse(groupMatch.Groups[3].Value);
+        var lastPoint  = int.Parse(groupMatch.Groups[4].Value);
+        for (var point = firstPoint; point <= lastPoint; point++)
+        {
+          try
+          {
+            Analogs.Add(new TmAddr(TmType.Analog, ch, rtu, point).ToTma());
+          }
+          catch (Exception)
+          {
+            throw new Exception($"Некорректная группа сигналов: {analog}");
+          }
+        }
+        continue;
+      }
+      throw new Exception($"Некорректный адрес измерения: {analog}");
     }
+      
+    Analogs.Sort();
+  }
+
+
+  public bool IsEventSuitable(TmEvent tmEvent)
+  {
+    return IsEventSuitableForTypes(tmEvent)       &&
+           IsEventSuitableForImportances(tmEvent) &&
+           IsEventSuitableForStatusesAndAnalogs(tmEvent);
+  }
+
+
+  private bool IsEventSuitableForTypes(TmEvent tmEvent)
+  {
+    return Types.HasFlag(tmEvent.Type);
+  }
+
+
+  private bool IsEventSuitableForImportances(TmEvent tmEvent)
+  {
+    return Importances.Contains(tmEvent.Importance);
+  }
+
+
+  private bool IsEventSuitableForStatusesAndAnalogs(TmEvent tmEvent)
+  {
+    if (Statuses.Count == 0 &&
+        Analogs.Count  == 0)
+    {
+      return true;
+    }
+    return (tmEvent.HasTmStatus &&
+            Statuses.BinarySearch(tmEvent.TmAddrTma) >= 0)
+         ||
+           (tmEvent.HasTmAnalog &&
+            Analogs.BinarySearch(tmEvent.TmAddrTma) >= 0);
   }
 }

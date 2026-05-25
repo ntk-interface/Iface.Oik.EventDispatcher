@@ -11,147 +11,146 @@ using MimeKit;
 using MimeKit.Text;
 using Newtonsoft.Json.Linq;
 
-namespace Iface.Oik.EventDispatcher.Workers
+namespace Iface.Oik.EventDispatcher.Workers;
+
+public class EmailWorker : Worker
 {
-  public class EmailWorker : Worker
+  private const string DefaultSubject = "Новые события ОИК Диспетчер НТ";
+
+  private Options             _options;
+  private InternetAddressList _addressList;
+
+
+  public override void Configure(JObject options)
   {
-    private const string DefaultSubject = "Новые события ОИК Диспетчер НТ";
-
-    private Options             _options;
-    private InternetAddressList _addressList;
-
-
-    public override void Configure(JObject options)
+    if (options == null)
     {
-      if (options == null)
+      throw new Exception("Не заданы настройки");
+    }
+
+    _options = options.ToObject<Options>();
+    new OptionsValidator().ValidateAndThrow(_options);
+    _addressList = new InternetAddressList(_options.SendTo.Select(MailboxAddress.Parse));
+  }
+
+
+  private class Options
+  {
+    public string   Host        { get; set; }
+    public int      Port        { get; set; }
+    public bool     UseSsl      { get; set; }
+    public string   Login       { get; set; }
+    public string   Password    { get; set; }
+    public string   From        { get; set; }
+    public string   FromEmail   { get; set; }
+    public string[] SendTo      { get; set; }
+    public bool     IsHtml      { get; set; }
+    public string   Subject     { get; set; }
+    public string   Body        { get; set; }
+    public bool     BatchEvents { get; set; }
+  }
+
+
+  private class OptionsValidator : AbstractValidator<Options>
+  {
+    public OptionsValidator()
+    {
+      RuleFor(x => x.Host).NotNull().NotEmpty();
+      RuleFor(x => x.Port).NotEqual(0);
+      RuleFor(x => x.From).NotNull().NotEmpty();
+      RuleFor(x => x.FromEmail).NotNull().NotEmpty();
+      RuleFor(x => x.SendTo).NotNull().NotEmpty();
+    }
+  }
+
+
+  public override async Task Initialize()
+  {
+    using (var client = new SmtpClient())
+    {
+      if (_options.UseSsl)
       {
-        throw new Exception("Не заданы настройки");
+        await client.ConnectAsync(_options.Host, _options.Port, true);
       }
-
-      _options = options.ToObject<Options>();
-      new OptionsValidator().ValidateAndThrow(_options);
-      _addressList = new InternetAddressList(_options.SendTo.Select(MailboxAddress.Parse));
-    }
-
-
-    private class Options
-    {
-      public string   Host        { get; set; }
-      public int      Port        { get; set; }
-      public bool     UseSsl      { get; set; }
-      public string   Login       { get; set; }
-      public string   Password    { get; set; }
-      public string   From        { get; set; }
-      public string   FromEmail   { get; set; }
-      public string[] SendTo      { get; set; }
-      public bool     IsHtml      { get; set; }
-      public string   Subject     { get; set; }
-      public string   Body        { get; set; }
-      public bool     BatchEvents { get; set; }
-    }
-
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-      public OptionsValidator()
+      else
       {
-        RuleFor(x => x.Host).NotNull().NotEmpty();
-        RuleFor(x => x.Port).NotEqual(0);
-        RuleFor(x => x.From).NotNull().NotEmpty();
-        RuleFor(x => x.FromEmail).NotNull().NotEmpty();
-        RuleFor(x => x.SendTo).NotNull().NotEmpty();
+        client.CheckCertificateRevocation = false;
+        await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None);
       }
-    }
-
-
-    public override async Task Initialize()
-    {
-      using (var client = new SmtpClient())
+      if (IsAuthRequired())
       {
-        if (_options.UseSsl)
-        {
-          await client.ConnectAsync(_options.Host, _options.Port, true);
-        }
-        else
-        {
-          client.CheckCertificateRevocation = false;
-          await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None);
-        }
-        if (IsAuthRequired())
-        {
-          await client.AuthenticateAsync(_options.Login, _options.Password);
-        }
-        await client.DisconnectAsync(true);
+        await client.AuthenticateAsync(_options.Login, _options.Password);
       }
+      await client.DisconnectAsync(true);
     }
+  }
 
 
-    protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
+  protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
+  {
+    var mimeMessage = new MimeMessage();
+
+    mimeMessage.To.AddRange(_addressList);
+    mimeMessage.From.Add(new MailboxAddress(_options.From, _options.FromEmail));
+
+    using (var client = new SmtpClient())
     {
-      var mimeMessage = new MimeMessage();
-
-      mimeMessage.To.AddRange(_addressList);
-      mimeMessage.From.Add(new MailboxAddress(_options.From, _options.FromEmail));
-
-      using (var client = new SmtpClient())
+      if (_options.UseSsl)
       {
-        if (_options.UseSsl)
-        {
-          await client.ConnectAsync(_options.Host, _options.Port, true, stoppingToken);
-        }
-        else
-        {
-          client.CheckCertificateRevocation = false;
-          await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None, stoppingToken);
-        }
+        await client.ConnectAsync(_options.Host, _options.Port, true, stoppingToken);
+      }
+      else
+      {
+        client.CheckCertificateRevocation = false;
+        await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.None, stoppingToken);
+      }
         
-        if (IsAuthRequired())
-        {
-          await client.AuthenticateAsync(_options.Login, _options.Password, stoppingToken);
-        }
+      if (IsAuthRequired())
+      {
+        await client.AuthenticateAsync(_options.Login, _options.Password, stoppingToken);
+      }
 
-        if (_options.BatchEvents)
+      if (_options.BatchEvents)
+      {
+        mimeMessage.Subject = GetSubject();
+        mimeMessage.Body = new TextPart(_options.IsHtml ? TextFormat.Html : TextFormat.Plain)
         {
-          mimeMessage.Subject = GetSubject();
+          Text = string.Join("\n\n", tmEvents.Select(tmEvent => GetBodyOrDefault(_options.Body, tmEvent)))
+        };
+        await client.SendAsync(mimeMessage, stoppingToken);
+      }
+      else
+      {
+        foreach (var tmEvent in tmEvents)
+        {
+          mimeMessage.Subject = GetSubject(tmEvent);
           mimeMessage.Body = new TextPart(_options.IsHtml ? TextFormat.Html : TextFormat.Plain)
           {
-            Text = string.Join("\n\n", tmEvents.Select(tmEvent => GetBodyOrDefault(_options.Body, tmEvent)))
+            Text = GetBodyOrDefault(_options.Body, tmEvent)
           };
           await client.SendAsync(mimeMessage, stoppingToken);
         }
-        else
-        {
-          foreach (var tmEvent in tmEvents)
-          {
-            mimeMessage.Subject = GetSubject(tmEvent);
-            mimeMessage.Body = new TextPart(_options.IsHtml ? TextFormat.Html : TextFormat.Plain)
-            {
-              Text = GetBodyOrDefault(_options.Body, tmEvent)
-            };
-            await client.SendAsync(mimeMessage, stoppingToken);
-          }
-        }
-
-        await client.DisconnectAsync(true, stoppingToken);
       }
+
+      await client.DisconnectAsync(true, stoppingToken);
     }
+  }
 
 
-    private string GetSubject()
-    {
-      return _options.Subject ?? DefaultSubject;
-    }
+  private string GetSubject()
+  {
+    return _options.Subject ?? DefaultSubject;
+  }
 
 
-    private string GetSubject(TmEvent tmEvent)
-    {
-      return GetBody(_options.Subject, tmEvent) ?? DefaultSubject;
-    }
+  private string GetSubject(TmEvent tmEvent)
+  {
+    return GetBody(_options.Subject, tmEvent) ?? DefaultSubject;
+  }
 
 
-    private bool IsAuthRequired()
-    {
-      return !string.IsNullOrEmpty(_options.Login);
-    }
+  private bool IsAuthRequired()
+  {
+    return !string.IsNullOrEmpty(_options.Login);
   }
 }
