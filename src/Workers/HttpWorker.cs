@@ -11,68 +11,68 @@ namespace Iface.Oik.EventDispatcher.Workers;
 
 public class HttpWorker : Worker
 {
-  private readonly HttpClient _httpClient = new();
+    private readonly HttpClient _httpClient = new();
 
-  private Options _options;
+    private Options _options;
 
-
-  public override void Configure(JObject options)
-  {
-    if (options == null)
+    public override void Configure(JObject options)
     {
-      throw new Exception("Не заданы настройки");
+        if (options == null)
+        {
+            throw new Exception("Не заданы настройки");
+        }
+
+        _options = options.ToObject<Options>();
+        new OptionsValidator().ValidateAndThrow(_options);
     }
 
-    _options = options.ToObject<Options>();
-    new OptionsValidator().ValidateAndThrow(_options);
-  }
-
-
-  private class Options
-  {
-    public HttpMethod? Method { get; set; }
-    public string      Url    { get; set; }
-    public string      Body   { get; set; }
-  }
-
-
-  private enum HttpMethod
-  {
-    Get,
-    Post,
-  }
-
-
-  private class OptionsValidator : AbstractValidator<Options>
-  {
-    public OptionsValidator()
+    private class Options
     {
-      RuleFor(o => o.Method).NotNull().IsInEnum();
-      RuleFor(o => o.Url).NotNull().NotEmpty();
+        public HttpMethod? Method { get; set; }
+        public string Url { get; set; }
+        public string Body { get; set; }
     }
-  }
 
-
-  protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
-  {
-    foreach (var tmEvent in tmEvents)
+    private enum HttpMethod
     {
-      var request = new HttpRequestMessage(GetHttpMethod(_options.Method), 
-                                           GetBody(_options.Url, tmEvent));
-      if (_options.Body != null)
-      {
-        request.Content = new StringContent(GetBody(_options.Body, tmEvent));
-      }
-
-      await _httpClient.SendAsync(request, stoppingToken);
+        Get,
+        Post,
     }
-  }
 
-
-  private static System.Net.Http.HttpMethod GetHttpMethod(HttpMethod? method) => method switch
+    private class OptionsValidator : AbstractValidator<Options>
     {
-      HttpMethod.Get  => System.Net.Http.HttpMethod.Get,
-      HttpMethod.Post => System.Net.Http.HttpMethod.Post,
-      _               => throw new Exception("Неизвестный HTTP-метод"),
-    };
+        public OptionsValidator()
+        {
+            RuleFor(o => o.Method).NotNull().IsInEnum();
+            RuleFor(o => o.Url).NotNull().NotEmpty();
+        }
+    }
+
+    protected override async Task DoWork(
+        IReadOnlyCollection<TmEvent> tmEvents,
+        CancellationToken stoppingToken
+    )
+    {
+        foreach (var tmEvent in tmEvents)
+        {
+            var request = new HttpRequestMessage(
+                GetHttpMethod(_options.Method),
+                GetBody(_options.Url, tmEvent)
+            );
+            if (_options.Body != null)
+            {
+                request.Content = new StringContent(GetBody(_options.Body, tmEvent));
+            }
+
+            await _httpClient.SendAsync(request, stoppingToken);
+        }
+    }
+
+    private static System.Net.Http.HttpMethod GetHttpMethod(HttpMethod? method) =>
+        method switch
+        {
+            HttpMethod.Get => System.Net.Http.HttpMethod.Get,
+            HttpMethod.Post => System.Net.Http.HttpMethod.Post,
+            _ => throw new Exception("Неизвестный HTTP-метод"),
+        };
 }

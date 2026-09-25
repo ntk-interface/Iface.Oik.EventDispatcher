@@ -11,47 +11,46 @@ namespace Iface.Oik.EventDispatcher.Workers;
 
 public class FileWorker : Worker
 {
-  private Options _options;
+    private Options _options;
 
-
-  public override void Configure(JObject options)
-  {
-    if (options == null)
+    public override void Configure(JObject options)
     {
-      throw new Exception("Не заданы настройки");
+        if (options == null)
+        {
+            throw new Exception("Не заданы настройки");
+        }
+
+        _options = options.ToObject<Options>();
+        new OptionsValidator().ValidateAndThrow(_options);
     }
 
-    _options = options.ToObject<Options>();
-    new OptionsValidator().ValidateAndThrow(_options);
-  }
-
-
-  private class Options
-  {
-    public string FilePath { get; set; }
-    public string Body     { get; set; }
-  }
-
-
-  private class OptionsValidator : AbstractValidator<Options>
-  {
-    public OptionsValidator()
+    private class Options
     {
-      RuleFor(o => o.FilePath).NotNull().NotEmpty();
-    }
-  } 
-
-
-  protected override Task DoWork(IReadOnlyCollection<TmEvent> tmEvents, CancellationToken stoppingToken)
-  {
-    using (var writer = new StreamWriter(_options.FilePath, append: true))
-    {
-      foreach (var tmEvent in tmEvents)
-      {
-        writer.WriteLine(GetBodyOrDefault(_options.Body, tmEvent));
-      }
+        public string FilePath { get; set; }
+        public string Body { get; set; }
     }
 
-    return Task.CompletedTask;
-  }
+    private class OptionsValidator : AbstractValidator<Options>
+    {
+        public OptionsValidator()
+        {
+            RuleFor(o => o.FilePath).NotNull().NotEmpty();
+        }
+    }
+
+    protected override Task DoWork(
+        IReadOnlyCollection<TmEvent> tmEvents,
+        CancellationToken stoppingToken
+    )
+    {
+        using (var writer = new StreamWriter(_options.FilePath, append: true))
+        {
+            foreach (var tmEvent in tmEvents)
+            {
+                writer.WriteLine(GetBodyOrDefault(_options.Body, tmEvent));
+            }
+        }
+
+        return Task.CompletedTask;
+    }
 }
