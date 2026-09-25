@@ -17,7 +17,7 @@ public class TmStartup : BackgroundService
     private const string TraceComment = "<Iface.Oik.EventDispatcher>";
 
     private static int _tmCid;
-    private static TmUserInfo _userInfo;
+    private static TmUserInfo _userInfo = null!;
     private static TmServerFeatures _serverFeatures;
     private static IntPtr _stopEventHandle;
 

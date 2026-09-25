@@ -12,8 +12,8 @@ namespace Iface.Oik.EventDispatcher;
 
 public abstract class Worker
 {
-    private string _name;
-    private WorkerFilter _filter;
+    private string? _name;
+    private WorkerFilter? _filter;
 
     public Worker SetName(string name)
     {
@@ -34,6 +34,11 @@ public abstract class Worker
         CancellationToken stoppingToken
     )
     {
+        if (_filter is null)
+        {
+            throw new InvalidOperationException("Не задан фильтр обработчика");
+        }
+
         var suitableEvents = tmEvents.Where(ev => _filter.IsEventSuitable(ev)).ToList();
         if (suitableEvents.Count == 0)
         {
@@ -51,12 +56,12 @@ public abstract class Worker
         }
     }
 
-    public static string GetBodyOrDefault(string template, TmEvent tmEvent)
+    public static string? GetBodyOrDefault(string? template, TmEvent? tmEvent)
     {
         return GetBody(template, tmEvent) ?? GetDefaultBody(tmEvent);
     }
 
-    public static string GetBody(string template, TmEvent tmEvent)
+    public static string? GetBody(string? template, TmEvent? tmEvent)
     {
         if (template == null || tmEvent == null)
         {
@@ -83,7 +88,7 @@ public abstract class Worker
         );
     }
 
-    public static string GetDefaultBody(TmEvent ev)
+    public static string? GetDefaultBody(TmEvent? ev)
     {
         if (ev == null)
         {

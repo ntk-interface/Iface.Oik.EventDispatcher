@@ -5,7 +5,7 @@ namespace Iface.Oik.EventDispatcher.Util;
 
 public static class OptionsGuard
 {
-    public static void ThrowIfNull(object value, string name)
+    public static void ThrowIfNull(object? value, string name)
     {
         if (value is null)
         {
@@ -13,7 +13,7 @@ public static class OptionsGuard
         }
     }
 
-    public static void ThrowIfNullOrEmpty(string value, string name)
+    public static void ThrowIfNullOrEmpty(string? value, string name)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -21,7 +21,7 @@ public static class OptionsGuard
         }
     }
 
-    public static void ThrowIfEmpty(ICollection value, string name)
+    public static void ThrowIfEmpty(ICollection? value, string name)
     {
         if (value is null || value.Count == 0)
         {
@@ -37,7 +37,7 @@ public static class OptionsGuard
         }
     }
 
-    public static void ThrowIfNotInEnum(Enum value, string name)
+    public static void ThrowIfNotInEnum(Enum? value, string name)
     {
         if (value is null || !Enum.IsDefined(value.GetType(), value))
         {

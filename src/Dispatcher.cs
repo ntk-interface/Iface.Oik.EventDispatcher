@@ -24,7 +24,7 @@ namespace Iface.Oik.EventDispatcher
         private readonly IHostApplicationLifetime _applicationLifetime;
 
         private readonly List<Worker> _workers = new List<Worker>();
-        private TmEventElix _currentElix;
+        private TmEventElix _currentElix = null!;
 
         public Dispatcher(IOikDataApi api, IHostApplicationLifetime applicationLifetime)
         {
@@ -97,12 +97,20 @@ namespace Iface.Oik.EventDispatcher
             string configText
         )
         {
-            var config = JsonSerializer.Deserialize<WorkerConfig>(configText, JsonSettings.Options);
+            var config =
+                JsonSerializer.Deserialize<WorkerConfig>(configText, JsonSettings.Options)
+                ?? throw new Exception("Пустой файл конфигурации");
 
-            var worker = CreateWorkerInstance(allWorkers, config.Worker);
+            var workerName = config.Worker;
+            if (string.IsNullOrWhiteSpace(workerName))
+            {
+                throw new Exception("Не задан обработчик в файле конфигурации");
+            }
+
+            var worker = CreateWorkerInstance(allWorkers, workerName);
             if (worker == null)
             {
-                throw new Exception($"Не найден обработчик {config.Worker}");
+                throw new Exception($"Не найден обработчик {workerName}");
             }
 
             worker
@@ -114,7 +122,7 @@ namespace Iface.Oik.EventDispatcher
             return worker;
         }
 
-        private static Worker CreateWorkerInstance(IEnumerable<Type> allWorkers, string name)
+        private static Worker? CreateWorkerInstance(IEnumerable<Type> allWorkers, string name)
         {
             var type = allWorkers.FirstOrDefault(t =>
                 string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)

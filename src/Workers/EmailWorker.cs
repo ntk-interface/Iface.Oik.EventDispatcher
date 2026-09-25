@@ -15,8 +15,8 @@ public class EmailWorker : Worker
 {
     private const string DefaultSubject = "Новые события ОИК Диспетчер НТ";
 
-    private Options _options;
-    private InternetAddressList _addressList;
+    private Options _options = null!;
+    private InternetAddressList _addressList = null!;
 
     public override void Configure(WorkerOptions options)
     {
@@ -31,17 +31,17 @@ public class EmailWorker : Worker
 
     private class Options
     {
-        public string Host { get; init; }
+        public string Host { get; init; } = null!;
         public int Port { get; init; }
         public bool UseSsl { get; init; }
-        public string Login { get; init; }
-        public string Password { get; init; }
-        public string From { get; init; }
-        public string FromEmail { get; init; }
-        public string[] SendTo { get; init; }
+        public string? Login { get; init; }
+        public string? Password { get; init; }
+        public string From { get; init; } = null!;
+        public string FromEmail { get; init; } = null!;
+        public string[] SendTo { get; init; } = null!;
         public bool IsHtml { get; init; }
-        public string Subject { get; init; }
-        public string Body { get; init; }
+        public string? Subject { get; init; }
+        public string? Body { get; init; }
         public bool BatchEvents { get; init; }
     }
 
@@ -60,7 +60,7 @@ public class EmailWorker : Worker
             }
             if (IsAuthRequired())
             {
-                await client.AuthenticateAsync(_options.Login, _options.Password);
+                await client.AuthenticateAsync(_options.Login!, _options.Password!);
             }
             await client.DisconnectAsync(true);
         }
@@ -95,7 +95,7 @@ public class EmailWorker : Worker
 
             if (IsAuthRequired())
             {
-                await client.AuthenticateAsync(_options.Login, _options.Password, stoppingToken);
+                await client.AuthenticateAsync(_options.Login!, _options.Password!, stoppingToken);
             }
 
             if (_options.BatchEvents)
@@ -121,7 +121,7 @@ public class EmailWorker : Worker
                         _options.IsHtml ? TextFormat.Html : TextFormat.Plain
                     )
                     {
-                        Text = GetBodyOrDefault(_options.Body, tmEvent),
+                        Text = GetBodyOrDefault(_options.Body, tmEvent) ?? string.Empty,
                     };
                     await client.SendAsync(mimeMessage, stoppingToken);
                 }

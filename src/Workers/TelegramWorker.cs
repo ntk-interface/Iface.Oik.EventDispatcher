@@ -9,8 +9,8 @@ namespace Iface.Oik.EventDispatcher.Workers;
 
 public class TelegramWorker : Worker
 {
-    private Options _options;
-    private TelegramBotClient _bot;
+    private Options _options = null!;
+    private TelegramBotClient _bot = null!;
 
     public override void Configure(WorkerOptions options)
     {
@@ -21,9 +21,9 @@ public class TelegramWorker : Worker
 
     private class Options
     {
-        public string BotToken { get; init; }
-        public string[] ChatIds { get; init; }
-        public string Body { get; init; }
+        public string BotToken { get; init; } = null!;
+        public string[] ChatIds { get; init; } = null!;
+        public string? Body { get; init; }
     }
 
     public override async Task Initialize()
@@ -44,7 +44,7 @@ public class TelegramWorker : Worker
             {
                 await _bot.SendMessage(
                     chatId,
-                    GetBodyOrDefault(_options.Body, tmEvent),
+                    GetBodyOrDefault(_options.Body, tmEvent) ?? string.Empty,
                     cancellationToken: stoppingToken
                 );
             }
