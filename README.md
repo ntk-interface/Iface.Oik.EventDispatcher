@@ -26,7 +26,7 @@ protected override async Task DoWork(IReadOnlyCollection<TmEvent> tmEvents)
 Дополнительно можно переопределить методы конфигурирования и инициализации (например, для проверки удаленного сервера) обработчика:
 
 ```
-public override void Configure(JObject options)
+public override void Configure(WorkerOptions options)
 {
   ...
 }

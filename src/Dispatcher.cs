@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Helpers;
 using Iface.Oik.Tm.Interfaces;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 
 namespace Iface.Oik.EventDispatcher
 {
@@ -96,7 +97,7 @@ namespace Iface.Oik.EventDispatcher
             string configText
         )
         {
-            var config = JsonConvert.DeserializeObject<WorkerConfig>(configText);
+            var config = JsonSerializer.Deserialize<WorkerConfig>(configText, JsonSettings.Options);
 
             var worker = CreateWorkerInstance(allWorkers, config.Worker);
             if (worker == null)
@@ -107,7 +108,7 @@ namespace Iface.Oik.EventDispatcher
             worker
                 .SetName(name)
                 .SetFilter(new WorkerFilter(config.Filter))
-                .Configure(config.Options);
+                .Configure(new WorkerOptions(config.Options));
             await worker.Initialize();
 
             return worker;

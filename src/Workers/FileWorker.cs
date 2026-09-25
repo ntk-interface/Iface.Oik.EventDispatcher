@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentValidation;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
-using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher.Workers;
 
@@ -13,29 +11,16 @@ public class FileWorker : Worker
 {
     private Options _options;
 
-    public override void Configure(JObject options)
+    public override void Configure(WorkerOptions options)
     {
-        if (options == null)
-        {
-            throw new Exception("Не заданы настройки");
-        }
-
-        _options = options.ToObject<Options>();
-        new OptionsValidator().ValidateAndThrow(_options);
+        _options = options.Get<Options>();
+        OptionsGuard.ThrowIfNullOrEmpty(_options.FilePath, "filePath");
     }
 
     private class Options
     {
-        public string FilePath { get; set; }
-        public string Body { get; set; }
-    }
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-        public OptionsValidator()
-        {
-            RuleFor(o => o.FilePath).NotNull().NotEmpty();
-        }
+        public string FilePath { get; init; }
+        public string Body { get; init; }
     }
 
     protected override Task DoWork(

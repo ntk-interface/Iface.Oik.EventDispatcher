@@ -1,15 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentValidation;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
-using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher.Workers;
 
@@ -20,44 +18,31 @@ public class EmailWorker : Worker
     private Options _options;
     private InternetAddressList _addressList;
 
-    public override void Configure(JObject options)
+    public override void Configure(WorkerOptions options)
     {
-        if (options == null)
-        {
-            throw new Exception("Не заданы настройки");
-        }
-
-        _options = options.ToObject<Options>();
-        new OptionsValidator().ValidateAndThrow(_options);
+        _options = options.Get<Options>();
+        OptionsGuard.ThrowIfNullOrEmpty(_options.Host, "host");
+        OptionsGuard.ThrowIfZero(_options.Port, "port");
+        OptionsGuard.ThrowIfNullOrEmpty(_options.From, "from");
+        OptionsGuard.ThrowIfNullOrEmpty(_options.FromEmail, "fromEmail");
+        OptionsGuard.ThrowIfEmpty(_options.SendTo, "sendTo");
         _addressList = new InternetAddressList(_options.SendTo.Select(MailboxAddress.Parse));
     }
 
     private class Options
     {
-        public string Host { get; set; }
-        public int Port { get; set; }
-        public bool UseSsl { get; set; }
-        public string Login { get; set; }
-        public string Password { get; set; }
-        public string From { get; set; }
-        public string FromEmail { get; set; }
-        public string[] SendTo { get; set; }
-        public bool IsHtml { get; set; }
-        public string Subject { get; set; }
-        public string Body { get; set; }
-        public bool BatchEvents { get; set; }
-    }
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-        public OptionsValidator()
-        {
-            RuleFor(x => x.Host).NotNull().NotEmpty();
-            RuleFor(x => x.Port).NotEqual(0);
-            RuleFor(x => x.From).NotNull().NotEmpty();
-            RuleFor(x => x.FromEmail).NotNull().NotEmpty();
-            RuleFor(x => x.SendTo).NotNull().NotEmpty();
-        }
+        public string Host { get; init; }
+        public int Port { get; init; }
+        public bool UseSsl { get; init; }
+        public string Login { get; init; }
+        public string Password { get; init; }
+        public string From { get; init; }
+        public string FromEmail { get; init; }
+        public string[] SendTo { get; init; }
+        public bool IsHtml { get; init; }
+        public string Subject { get; init; }
+        public string Body { get; init; }
+        public bool BatchEvents { get; init; }
     }
 
     public override async Task Initialize()

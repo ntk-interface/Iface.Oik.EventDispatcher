@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentValidation;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
-using Newtonsoft.Json.Linq;
 using Telegram.Bot;
 
 namespace Iface.Oik.EventDispatcher.Workers;
@@ -14,31 +12,18 @@ public class TelegramWorker : Worker
     private Options _options;
     private TelegramBotClient _bot;
 
-    public override void Configure(JObject options)
+    public override void Configure(WorkerOptions options)
     {
-        if (options == null)
-        {
-            throw new Exception("Не заданы настройки");
-        }
-
-        _options = options.ToObject<Options>();
-        new OptionsValidator().ValidateAndThrow(_options);
+        _options = options.Get<Options>();
+        OptionsGuard.ThrowIfNullOrEmpty(_options.BotToken, "botToken");
+        OptionsGuard.ThrowIfEmpty(_options.ChatIds, "chatIds");
     }
 
     private class Options
     {
-        public string BotToken { get; set; }
-        public string[] ChatIds { get; set; }
-        public string Body { get; set; }
-    }
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-        public OptionsValidator()
-        {
-            RuleFor(o => o.BotToken).NotNull().NotEmpty();
-            RuleFor(o => o.ChatIds).NotNull().NotEmpty();
-        }
+        public string BotToken { get; init; }
+        public string[] ChatIds { get; init; }
+        public string Body { get; init; }
     }
 
     public override async Task Initialize()

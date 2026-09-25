@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Iface.Oik.Tm.Helpers;
 using Iface.Oik.Tm.Interfaces;
-using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher;
 
@@ -93,7 +92,7 @@ public abstract class Worker
         return $"{ev.Time} | {ev.ImportanceAlias} | {ev.Text} | {ev.StateString} | {ev.TypeString} | {ev.Username}";
     }
 
-    public virtual void Configure(JObject options) { }
+    public virtual void Configure(WorkerOptions options) { }
 
     public virtual Task Initialize()
     {

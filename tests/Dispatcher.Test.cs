@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Iface.Oik.EventDispatcher.Test
@@ -97,7 +97,7 @@ namespace Iface.Oik.EventDispatcher.Test
 
         private class ThrowsInsideConfigureDummyWorker : DummyWorker
         {
-            public override void Configure(JObject options)
+            public override void Configure(WorkerOptions options)
             {
                 throw new Exception();
             }
@@ -121,7 +121,7 @@ namespace Iface.Oik.EventDispatcher.Test
 
         private static string GetDummyConfig(string workerName)
         {
-            return JsonConvert.SerializeObject(new { Worker = workerName });
+            return JsonSerializer.Serialize(new { Worker = workerName }, JsonSettings.Options);
         }
     }
 }

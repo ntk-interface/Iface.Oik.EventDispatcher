@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentValidation;
+using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
-using Newtonsoft.Json.Linq;
 
 namespace Iface.Oik.EventDispatcher.Workers;
 
@@ -15,37 +14,24 @@ public class HttpWorker : Worker
 
     private Options _options;
 
-    public override void Configure(JObject options)
+    public override void Configure(WorkerOptions options)
     {
-        if (options == null)
-        {
-            throw new Exception("Не заданы настройки");
-        }
-
-        _options = options.ToObject<Options>();
-        new OptionsValidator().ValidateAndThrow(_options);
+        _options = options.Get<Options>();
+        OptionsGuard.ThrowIfNotInEnum(_options.Method, "method");
+        OptionsGuard.ThrowIfNullOrEmpty(_options.Url, "url");
     }
 
     private class Options
     {
-        public HttpMethod? Method { get; set; }
-        public string Url { get; set; }
-        public string Body { get; set; }
+        public HttpMethod? Method { get; init; }
+        public string Url { get; init; }
+        public string Body { get; init; }
     }
 
     private enum HttpMethod
     {
         Get,
         Post,
-    }
-
-    private class OptionsValidator : AbstractValidator<Options>
-    {
-        public OptionsValidator()
-        {
-            RuleFor(o => o.Method).NotNull().IsInEnum();
-            RuleFor(o => o.Url).NotNull().NotEmpty();
-        }
     }
 
     protected override async Task DoWork(
