@@ -12,7 +12,7 @@ public class HttpWorker : Worker
 {
     private readonly HttpClient _httpClient = new();
 
-    private Options _options;
+    private Options _options = null!;
 
     public override void Configure(WorkerOptions options)
     {
@@ -24,8 +24,8 @@ public class HttpWorker : Worker
     private class Options
     {
         public HttpMethod? Method { get; init; }
-        public string Url { get; init; }
-        public string Body { get; init; }
+        public string Url { get; init; } = null!;
+        public string? Body { get; init; }
     }
 
     private enum HttpMethod
@@ -47,7 +47,9 @@ public class HttpWorker : Worker
             );
             if (_options.Body != null)
             {
-                request.Content = new StringContent(GetBody(_options.Body, tmEvent));
+                request.Content = new StringContent(
+                    GetBody(_options.Body, tmEvent) ?? string.Empty
+                );
             }
 
             await _httpClient.SendAsync(request, stoppingToken);

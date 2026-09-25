@@ -7,7 +7,7 @@ namespace Iface.Oik.EventDispatcher.Test.Util
 {
     public class TmEventUtil
     {
-        public static TmEvent CreateRandomValidTmEvent(Action<TmEventDto> extraDtoAction = null)
+        public static TmEvent CreateRandomValidTmEvent(Action<TmEventDto>? extraDtoAction = null)
         {
             var dto = new Fixture().Create<TmEventDto>();
             FixRandomTmEventDtoToBeValid(dto);

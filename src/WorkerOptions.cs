@@ -7,9 +7,9 @@ namespace Iface.Oik.EventDispatcher;
 
 public sealed class WorkerOptions
 {
-    private readonly JsonNode _node;
+    private readonly JsonNode? _node;
 
-    public WorkerOptions(JsonNode node)
+    public WorkerOptions(JsonNode? node)
     {
         _node = node;
     }
@@ -21,6 +21,7 @@ public sealed class WorkerOptions
             throw new Exception("Не заданы настройки");
         }
 
-        return _node.Deserialize<T>(JsonSettings.Options);
+        return _node.Deserialize<T>(JsonSettings.Options)
+            ?? throw new Exception("Не удалось разобрать настройки");
     }
 }

@@ -12,7 +12,7 @@ public class WorkerFilter
     public List<int> Statuses { get; } = new();
     public List<int> Analogs { get; } = new();
 
-    public WorkerFilter(WorkerFilterConfig filterConfig)
+    public WorkerFilter(WorkerFilterConfig? filterConfig)
     {
         SetTypes(filterConfig?.Types);
         SetImportances(filterConfig?.Importances);
@@ -20,7 +20,7 @@ public class WorkerFilter
         SetAnalogs(filterConfig?.Analogs);
     }
 
-    private void SetTypes(List<TmEventTypes> types)
+    private void SetTypes(List<TmEventTypes>? types)
     {
         if (types == null)
         {
@@ -30,12 +30,12 @@ public class WorkerFilter
         types.ForEach(t => Types |= t);
     }
 
-    private void SetImportances(List<int> importances)
+    private void SetImportances(List<int>? importances)
     {
         Importances.AddRange(importances ?? new List<int> { 0, 1, 2, 3 });
     }
 
-    private void SetStatuses(List<string> statuses)
+    private void SetStatuses(List<string>? statuses)
     {
         if (statuses == null || statuses.Count == 0)
         {
@@ -76,7 +76,7 @@ public class WorkerFilter
         Statuses.Sort();
     }
 
-    private void SetAnalogs(List<string> analogs)
+    private void SetAnalogs(List<string>? analogs)
     {
         if (analogs == null || analogs.Count == 0)
         {

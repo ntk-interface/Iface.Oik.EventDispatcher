@@ -9,7 +9,7 @@ namespace Iface.Oik.EventDispatcher.Workers;
 
 public class FileWorker : Worker
 {
-    private Options _options;
+    private Options _options = null!;
 
     public override void Configure(WorkerOptions options)
     {
@@ -19,8 +19,8 @@ public class FileWorker : Worker
 
     private class Options
     {
-        public string FilePath { get; init; }
-        public string Body { get; init; }
+        public string FilePath { get; init; } = null!;
+        public string? Body { get; init; }
     }
 
     protected override Task DoWork(
