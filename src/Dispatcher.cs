@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Helpers;
 using Iface.Oik.Tm.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Iface.Oik.EventDispatcher
@@ -21,117 +21,92 @@ namespace Iface.Oik.EventDispatcher
         );
 
         private readonly IOikDataApi _api;
-        private readonly IHostApplicationLifetime _applicationLifetime;
+        private readonly IServiceProvider _serviceProvider;
 
         private readonly List<Worker> _workers = new List<Worker>();
         private TmEventElix _currentElix = null!;
 
-        public Dispatcher(IOikDataApi api, IHostApplicationLifetime applicationLifetime)
+        public Dispatcher(IOikDataApi api, IServiceProvider serviceProvider)
         {
             _api = api;
-            _applicationLifetime = applicationLifetime;
+            _serviceProvider = serviceProvider;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            if (!await LoadWorkers())
-            {
-                _applicationLifetime.StopApplication();
-                return;
-            }
+            await LoadWorkers();
 
             _currentElix = await _api.GetCurrentEventsElix();
 
             await base.StartAsync(cancellationToken);
         }
 
-        private async Task<bool> LoadWorkers()
+        private async Task LoadWorkers()
         {
             if (!Directory.Exists(ConfigsPath))
             {
-                Tms.PrintError("Не найден каталог с файлами обработчиков событий");
-                return false;
+                throw new Exception("Не найден каталог с файлами обработчиков событий");
             }
-
-            var allWorkers = FindAllWorkers();
 
             foreach (var file in Directory.GetFiles(ConfigsPath, "*.json"))
             {
                 var name = Path.GetFileName(file);
-                try
-                {
-                    _workers.Add(await CreateWorker(allWorkers, name, File.ReadAllText(file)));
-                }
-                catch (JsonException ex)
-                {
-                    Tms.PrintError($"Ошибка JSON при разборе файла {name}: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    Tms.PrintError($"Ошибка при разборе файла {name}: {ex.Message}");
-                }
+                _workers.Add(await CreateWorker(_serviceProvider, name, File.ReadAllText(file)));
             }
 
             if (_workers.Count == 0)
             {
-                Tms.PrintError("Не найдено ни одного обработчика событий");
-                return false;
+                throw new Exception("Не найдено ни одного обработчика событий");
             }
 
             Tms.PrintMessage($"Всего обработчиков событий: {_workers.Count}");
-            return true;
-        }
-
-        private static List<Type> FindAllWorkers()
-        {
-            return Assembly
-                .GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(Worker)))
-                .ToList();
         }
 
         public static async Task<Worker> CreateWorker(
-            IEnumerable<Type> allWorkers,
+            IServiceProvider serviceProvider,
             string name,
             string configText
         )
         {
-            var config =
-                JsonSerializer.Deserialize<WorkerConfig>(configText, JsonSettings.Options)
-                ?? throw new Exception("Пустой файл конфигурации");
+            var config = ReadConfig(name, configText);
 
             var workerName = config.Worker;
             if (string.IsNullOrWhiteSpace(workerName))
             {
-                throw new Exception("Не задан обработчик в файле конфигурации");
+                throw new Exception($"Не задан обработчик в файле {name}");
             }
 
-            var worker = CreateWorkerInstance(allWorkers, workerName);
-            if (worker == null)
+            try
             {
-                throw new Exception($"Не найден обработчик {workerName}");
+                var worker = serviceProvider.GetRequiredKeyedService<Worker>(workerName);
+                worker
+                    .SetName(name)
+                    .SetFilter(new WorkerFilter(config.Filter))
+                    .Configure(new WorkerOptions(config.Options));
+                await worker.Initialize();
+
+                return worker;
             }
-
-            worker
-                .SetName(name)
-                .SetFilter(new WorkerFilter(config.Filter))
-                .Configure(new WorkerOptions(config.Options));
-            await worker.Initialize();
-
-            return worker;
+            catch (Exception ex)
+            {
+                throw new Exception(
+                    $"Ошибка обработчика {workerName} в файле {name}: {ex.Message}",
+                    ex
+                );
+            }
         }
 
-        private static Worker? CreateWorkerInstance(IEnumerable<Type> allWorkers, string name)
+        private static WorkerConfig ReadConfig(string name, string configText)
         {
-            var type = allWorkers.FirstOrDefault(t =>
-                string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase)
-            );
-            if (type == null)
+            try
             {
-                return null;
+                return JsonSerializer.Deserialize<WorkerConfig>(configText, JsonSettings.Options)
+                    ?? throw new Exception("Пустой файл конфигурации");
             }
-            return Activator.CreateInstance(type) as Worker;
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка при разборе файла {name}: {ex.Message}", ex);
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
