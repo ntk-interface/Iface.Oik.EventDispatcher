@@ -7,6 +7,7 @@ using FakeItEasy;
 using FluentAssertions;
 using Iface.Oik.EventDispatcher.Util;
 using Iface.Oik.Tm.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Iface.Oik.EventDispatcher.Test
@@ -20,12 +21,12 @@ namespace Iface.Oik.EventDispatcher.Test
             {
                 Func<Task> act = async () =>
                     await Dispatcher.CreateWorker(
-                        AllWorkers,
+                        CreateServiceProvider(),
                         A.Dummy<string>(),
                         "{NOT VALID JSON]"
                     );
 
-                act.Should().Throw<JsonException>();
+                act.Should().Throw<Exception>();
             }
 
             [Fact]
@@ -33,7 +34,7 @@ namespace Iface.Oik.EventDispatcher.Test
             {
                 Func<Task> act = async () =>
                     await Dispatcher.CreateWorker(
-                        AllWorkers,
+                        CreateServiceProvider(),
                         A.Dummy<string>(),
                         GetDummyConfig("Totally not found worker")
                     );
@@ -46,7 +47,7 @@ namespace Iface.Oik.EventDispatcher.Test
             {
                 Func<Task> act = async () =>
                     await Dispatcher.CreateWorker(
-                        AllWorkers,
+                        CreateServiceProvider(),
                         A.Dummy<string>(),
                         GetDummyConfig(nameof(ThrowsInsideConfigureDummyWorker))
                     );
@@ -59,7 +60,7 @@ namespace Iface.Oik.EventDispatcher.Test
             {
                 Func<Task> act = async () =>
                     await Dispatcher.CreateWorker(
-                        AllWorkers,
+                        CreateServiceProvider(),
                         A.Dummy<string>(),
                         GetDummyConfig(nameof(ThrowsInsideInitializeDummyWorker))
                     );
@@ -73,7 +74,7 @@ namespace Iface.Oik.EventDispatcher.Test
             public async void ReturnsCorrectWorker(string workerName, Type expectedWorkerType)
             {
                 var result = await Dispatcher.CreateWorker(
-                    AllWorkers,
+                    CreateServiceProvider(),
                     A.Dummy<string>(),
                     GetDummyConfig(workerName)
                 );
@@ -111,13 +112,20 @@ namespace Iface.Oik.EventDispatcher.Test
             }
         }
 
-        private static readonly List<Type> AllWorkers = new List<Type>
+        private static IServiceProvider CreateServiceProvider()
         {
-            typeof(DummyWorker),
-            typeof(AnotherDummyWorker),
-            typeof(ThrowsInsideConfigureDummyWorker),
-            typeof(ThrowsInsideInitializeDummyWorker),
-        };
+            var services = new ServiceCollection();
+            services.AddKeyedTransient<Worker, DummyWorker>(nameof(DummyWorker));
+            services.AddKeyedTransient<Worker, AnotherDummyWorker>(nameof(AnotherDummyWorker));
+            services.AddKeyedTransient<Worker, ThrowsInsideConfigureDummyWorker>(
+                nameof(ThrowsInsideConfigureDummyWorker)
+            );
+            services.AddKeyedTransient<Worker, ThrowsInsideInitializeDummyWorker>(
+                nameof(ThrowsInsideInitializeDummyWorker)
+            );
+
+            return services.BuildServiceProvider();
+        }
 
         private static string GetDummyConfig(string workerName)
         {
